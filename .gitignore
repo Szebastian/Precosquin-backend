@@ -1,0 +1,124 @@
+# ==================
+# DEPENDENCIES
+# ==================
+node_modules/
+.pnp
+.pnp.js
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# ==================
+# BUILD OUTPUT
+# ==================
+dist/
+build/
+.angular/
+.angular/cache/
+frontend/dist/
+backend/app/*.so
+
+# ==================
+# ENVIRONMENT
+# ==================
+.env
+.env.local
+.env.*.local
+.env.production
+
+# ==================
+# IDE / EDITOR
+# ==================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ==================
+# OS
+# ==================
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# ==================
+# LOGS
+# ==================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# ==================
+# TEMP / CACHE
+# ==================
+tmp/
+temp/
+*.tmp
+.cache/
+
+# ==================
+# TESTING / COVERAGE
+# ==================
+coverage/
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+.tox/
+
+# ==================
+# SUPABASE
+# ==================
+supabase/.temp/
+
+# ==================
+# DOCKER
+# ==================
+docker-compose.override.yml
+
+# ==================
+# ANGULAR
+# ==================
+frontend/.angular/
+frontend/tmp/
+
+# ==================
+# PYTHON
+# ==================
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+.coveragerc
+
+# ==================
+# NODE
+# ==================
+.npm/
+.eslintcache
+*.tsbuildinfo
