@@ -295,9 +295,9 @@ interface InscripcionData {
             }
           </form>
           <div class="sponsors-section">
-            <img src="assets/MUNI-LOGO2.svg" alt="Municipalidad" class="sponsor-logo" />
-            <img src="assets/rayentray.png" alt="Rayentray" class="sponsor-logo" />
-            <img src="assets/hidro.jpeg" alt="Hidro" class="sponsor-logo" />
+            <img src="assets/MUNI-LOGO2.svg" alt="Municipalidad" class="sponsor-logo sponsor-logo-inverted sponsor-logo-large" />
+            <img src="assets/rayentray.png" alt="Rayentray" class="sponsor-logo sponsor-logo-transparent" />
+            <img src="assets/hidro.jpeg" alt="Hidro" class="sponsor-logo sponsor-logo-transparent" />
           </div>
           
           <div class="social-container">
@@ -429,21 +429,46 @@ interface InscripcionData {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: var(--space-8);
+      gap: var(--space-12);
       margin-top: var(--space-8);
-      padding: var(--space-6) var(--space-8);
-      border-top: 1px solid var(--gray-200);
+      padding: var(--space-10);
+      border-top: 3px solid rgba(99, 102, 241, 0.3);
       background: #1e293b;
       border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+      box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.3);
     }
 
     .sponsor-logo {
-      height: 70px;
+      height: 80px;
       width: auto;
       max-width: 160px;
       object-fit: contain;
-      filter: none;
       opacity: 1;
+      padding: var(--space-2);
+      background: white;
+      border-radius: var(--radius-md);
+      border: 1px solid #334155;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .sponsor-logo-inverted {
+      filter: brightness(0) invert(1);
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .sponsor-logo-large {
+      height: 110px;
+      max-width: 220px;
+    }
+
+    .sponsor-logo-transparent {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
     }
 
     .social-container {
@@ -452,13 +477,12 @@ interface InscripcionData {
       align-items: center;
       gap: var(--space-3);
       padding: var(--space-6) var(--space-8);
-      background: #1e293b;
-      border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+      background: rgba(255, 255, 255, 0.95);
     }
 
     .social-label {
       font-size: var(--text-sm);
-      color: #94a3b8;
+      color: #475569;
       font-weight: var(--weight-medium);
       margin: 0;
     }
@@ -474,9 +498,9 @@ interface InscripcionData {
       align-items: center;
       gap: var(--space-2);
       padding: var(--space-3) var(--space-4);
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(99, 102, 241, 0.1);
       border-radius: var(--radius-lg);
-      color: #fff;
+      color: #4f46e5;
       text-decoration: none;
       transition: all 0.2s ease;
       font-size: var(--text-sm);
@@ -484,7 +508,7 @@ interface InscripcionData {
     }
 
     .social-link:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(99, 102, 241, 0.2);
       transform: translateY(-2px);
     }
 
@@ -533,9 +557,10 @@ interface InscripcionData {
     }
 
     .form-card {
-      background: #fff;
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%);
+      border: 2px solid rgba(99, 102, 241, 0.3);
       border-radius: var(--radius-2xl);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.1);
       overflow: hidden;
     }
 
@@ -547,13 +572,13 @@ interface InscripcionData {
     .form-header h1 {
       font-size: 1.625rem;
       font-weight: var(--weight-bold);
-      color: var(--gray-900);
+      color: #e2e8f0;
       margin: 0 0 var(--space-2);
     }
 
     .form-header p {
       font-size: var(--text-sm);
-      color: var(--gray-500);
+      color: #94a3b8;
       margin: 0;
     }
 
@@ -580,8 +605,8 @@ interface InscripcionData {
       justify-content: center;
       font-size: var(--text-xs);
       font-weight: var(--weight-semibold);
-      background: var(--gray-100);
-      color: var(--gray-400);
+      background: rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
       transition: all var(--transition-base);
       flex-shrink: 0;
     }
@@ -589,7 +614,7 @@ interface InscripcionData {
     .step.active .step-circle {
       background: var(--brand-600);
       color: #fff;
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.3);
     }
 
     .step.completed .step-circle {
@@ -600,17 +625,17 @@ interface InscripcionData {
     .step-label {
       font-size: var(--text-xs);
       font-weight: var(--weight-medium);
-      color: var(--gray-400);
+      color: #64748b;
       white-space: nowrap;
     }
 
-    .step.active .step-label { color: var(--brand-600); font-weight: var(--weight-semibold); }
-    .step.completed .step-label { color: var(--success-600); }
+    .step.active .step-label { color: var(--brand-400); font-weight: var(--weight-semibold); }
+    .step.completed .step-label { color: var(--success-400); }
 
     .step-line {
       width: 36px;
       height: 2px;
-      background: var(--gray-200);
+      background: rgba(255, 255, 255, 0.1);
       margin: 0 var(--space-2);
       flex-shrink: 0;
       transition: background var(--transition-base);
@@ -636,13 +661,13 @@ interface InscripcionData {
     .step-title {
       font-size: 1.125rem;
       font-weight: var(--weight-semibold);
-      color: var(--gray-900);
+      color: #e2e8f0;
       margin: 0 0 var(--space-1);
     }
 
     .step-desc {
       font-size: var(--text-sm);
-      color: var(--gray-500);
+      color: #94a3b8;
       margin: 0 0 var(--space-6);
     }
 
@@ -654,7 +679,7 @@ interface InscripcionData {
       display: block;
       font-size: var(--text-sm);
       font-weight: var(--weight-medium);
-      color: var(--gray-700);
+      color: #cbd5e1;
       margin-bottom: var(--space-2);
     }
 
@@ -663,9 +688,9 @@ interface InscripcionData {
       width: 100%;
       padding: 0.75rem 0.875rem;
       font-size: var(--text-base);
-      color: var(--gray-900);
-      background: #fff;
-      border: 2px solid var(--gray-200);
+      color: #e2e8f0;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
       border-radius: var(--radius-lg);
       outline: none;
       transition: all 0.2s ease;
@@ -675,14 +700,14 @@ interface InscripcionData {
 
     .form-input:focus,
     .form-textarea:focus {
-      border-color: var(--brand-500);
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-      background: #fff;
+      border-color: var(--brand-400);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .form-input::placeholder,
     .form-textarea::placeholder {
-      color: var(--gray-400);
+      color: #64748b;
     }
 
     .form-textarea {
@@ -711,26 +736,26 @@ interface InscripcionData {
       align-items: center;
       gap: var(--space-3);
       padding: var(--space-4) var(--space-4);
-      border: 2px solid var(--gray-200);
+      border: 2px solid rgba(255, 255, 255, 0.1);
       border-radius: var(--radius-xl);
       cursor: pointer;
       transition: all var(--transition-fast);
-      background: #fff;
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .category-card input { display: none; }
 
     .category-card:hover {
-      border-color: var(--gray-300);
-      background: var(--gray-50);
+      border-color: rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.08);
       transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
     .category-card.selected {
-      border-color: var(--brand-500);
-      background: var(--brand-50);
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+      border-color: var(--brand-400);
+      background: rgba(99, 102, 241, 0.15);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
     }
 
     .category-icon {
@@ -743,22 +768,22 @@ interface InscripcionData {
       flex-shrink: 0;
     }
 
-    .category-icon-music { background: rgba(99, 102, 241, 0.1); color: var(--brand-600); }
-    .category-icon-dance { background: rgba(245, 158, 11, 0.1); color: var(--warning-600); }
+    .category-icon-music { background: rgba(99, 102, 241, 0.2); color: var(--brand-400); }
+    .category-icon-dance { background: rgba(245, 158, 11, 0.2); color: var(--warning-400); }
     .category-card.selected .category-icon-music { background: var(--brand-600); color: #fff; }
-    .category-card.selected .category-icon-dance { background: var(--warning-600); color: #fff; }
+    .category-card.selected .category-icon-dance { background: var(--warning-500); color: #fff; }
 
     .category-name {
       display: block;
       font-size: var(--text-sm);
       font-weight: var(--weight-semibold);
-      color: var(--gray-900);
+      color: #e2e8f0;
     }
 
     .category-desc {
       display: block;
       font-size: var(--text-xs);
-      color: var(--gray-500);
+      color: #94a3b8;
     }
 
     .subcategory-grid {
@@ -771,34 +796,34 @@ interface InscripcionData {
       display: inline-flex;
       align-items: center;
       padding: 10px var(--space-4);
-      border: 1.5px solid var(--gray-200);
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
       border-radius: var(--radius-full);
       font-size: var(--text-sm);
-      color: var(--gray-600);
+      color: #cbd5e1;
       cursor: pointer;
       transition: all var(--transition-fast);
-      background: #fff;
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .subcategory-chip input { display: none; }
 
     .subcategory-chip:hover {
-      border-color: var(--gray-400);
-      background: var(--gray-50);
+      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .subcategory-chip.selected {
-      border-color: var(--brand-500);
-      background: var(--brand-50);
-      color: var(--brand-700);
+      border-color: var(--brand-400);
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--brand-300);
       font-weight: var(--weight-medium);
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
     }
 
     .form-hint {
       display: block;
       font-size: var(--text-xs);
-      color: var(--gray-400);
+      color: #64748b;
       margin-top: var(--space-2);
     }
 
@@ -816,12 +841,12 @@ interface InscripcionData {
     .review-header h3 {
       font-size: var(--text-sm);
       font-weight: var(--weight-semibold);
-      color: var(--gray-900);
+      color: #e2e8f0;
     }
 
     .btn-edit {
       font-size: var(--text-xs);
-      color: var(--brand-600);
+      color: var(--brand-400);
       background: none;
       border: none;
       cursor: pointer;
@@ -830,10 +855,10 @@ interface InscripcionData {
       border-radius: var(--radius-md);
       transition: all var(--transition-fast);
     }
-    .btn-edit:hover { background: var(--brand-50); }
+    .btn-edit:hover { background: rgba(99, 102, 241, 0.1); }
 
     .review-grid {
-      background: var(--gray-50);
+      background: rgba(255, 255, 255, 0.05);
       border-radius: var(--radius-lg);
       padding: var(--space-4) var(--space-5);
       display: grid;
@@ -848,7 +873,7 @@ interface InscripcionData {
     .review-label {
       display: block;
       font-size: var(--text-xs);
-      color: var(--gray-500);
+      color: #94a3b8;
       margin-bottom: 3px;
       text-transform: uppercase;
       letter-spacing: 0.03em;
@@ -858,13 +883,13 @@ interface InscripcionData {
       display: block;
       font-size: var(--text-sm);
       font-weight: var(--weight-medium);
-      color: var(--gray-900);
+      color: #e2e8f0;
     }
 
     .terms-check {
       margin-top: var(--space-6);
       padding-top: var(--space-5);
-      border-top: 1px solid var(--gray-200);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .checkbox-label {
@@ -872,7 +897,7 @@ interface InscripcionData {
       align-items: center;
       gap: var(--space-3);
       font-size: var(--text-sm);
-      color: var(--gray-600);
+      color: #cbd5e1;
       cursor: pointer;
       padding: var(--space-2) 0;
     }
@@ -890,7 +915,7 @@ interface InscripcionData {
       gap: var(--space-3);
       margin-top: var(--space-8);
       padding-top: var(--space-6);
-      border-top: 1px solid var(--gray-100);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .spacer { flex: 1; }
@@ -911,10 +936,10 @@ interface InscripcionData {
     .constancia-card {
       width: 100%;
       max-width: 640px;
-      background: #fff;
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%);
+      border: 2px solid rgba(99, 102, 241, 0.3);
       border-radius: var(--radius-xl);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
-      border: 1px solid var(--gray-200);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.1);
       padding: var(--space-10);
     }
 
@@ -937,8 +962,8 @@ interface InscripcionData {
       align-items: center;
       gap: 6px;
       padding: 6px 14px;
-      background: var(--success-50);
-      color: var(--success-600);
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--success-400);
       border-radius: var(--radius-full);
       font-size: var(--text-xs);
       font-weight: var(--weight-semibold);
@@ -947,11 +972,11 @@ interface InscripcionData {
     .constancia-title {
       font-size: var(--text-xl);
       font-weight: var(--weight-bold);
-      color: var(--gray-900);
+      color: #e2e8f0;
       text-align: center;
       margin-bottom: var(--space-6);
       padding-bottom: var(--space-4);
-      border-bottom: 2px solid var(--gray-100);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
     }
 
     .constancia-body {
@@ -966,7 +991,7 @@ interface InscripcionData {
       display: block;
       font-size: var(--text-xs);
       font-weight: var(--weight-medium);
-      color: var(--gray-500);
+      color: #94a3b8;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 2px;
@@ -975,15 +1000,15 @@ interface InscripcionData {
     .constancia-value {
       display: block;
       font-size: var(--text-sm);
-      color: var(--gray-900);
+      color: #e2e8f0;
       font-weight: var(--weight-medium);
     }
 
     .constancia-id {
       font-family: monospace;
       font-size: var(--text-xs);
-      color: var(--brand-600);
-      background: var(--brand-50);
+      color: var(--brand-400);
+      background: rgba(99, 102, 241, 0.15);
       padding: 2px 8px;
       border-radius: var(--radius-sm);
       display: inline-block;
@@ -991,11 +1016,11 @@ interface InscripcionData {
 
     .constancia-category {
       font-weight: var(--weight-semibold);
-      color: var(--brand-600);
+      color: var(--brand-400);
     }
 
     .constancia-status {
-      color: var(--warning-600);
+      color: var(--warning-400);
     }
 
     .constancia-row {
@@ -1006,7 +1031,7 @@ interface InscripcionData {
 
     .constancia-divider {
       height: 1px;
-      background: var(--gray-100);
+      background: rgba(255, 255, 255, 0.1);
       margin: var(--space-4) 0;
     }
 
@@ -1014,11 +1039,11 @@ interface InscripcionData {
       display: flex;
       gap: var(--space-2);
       align-items: flex-start;
-      background: var(--info-50);
+      background: rgba(59, 130, 246, 0.1);
       padding: var(--space-3) var(--space-4);
       border-radius: var(--radius-lg);
       margin-top: var(--space-4);
-      color: var(--info-600);
+      color: #93c5fd;
     }
 
     .constancia-note svg {
@@ -1028,7 +1053,7 @@ interface InscripcionData {
 
     .constancia-note p {
       font-size: var(--text-xs);
-      color: var(--gray-600);
+      color: #93c5fd;
       margin: 0;
       line-height: 1.5;
     }
@@ -1039,7 +1064,7 @@ interface InscripcionData {
       gap: var(--space-3);
       margin-top: var(--space-6);
       padding-top: var(--space-4);
-      border-top: 2px solid var(--gray-100);
+      border-top: 2px solid rgba(255, 255, 255, 0.1);
     }
 
     @media print {
@@ -1070,8 +1095,8 @@ interface InscripcionData {
       width: 72px;
       height: 72px;
       border-radius: var(--radius-full);
-      background: var(--success-50);
-      color: var(--success-600);
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--success-400);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -1080,12 +1105,12 @@ interface InscripcionData {
 
     .success-content h2 {
       font-size: var(--text-xl);
-      color: var(--gray-900);
+      color: #e2e8f0;
       margin-bottom: var(--space-2);
     }
 
     .success-content p {
-      color: var(--gray-500);
+      color: #94a3b8;
       margin-bottom: var(--space-6);
       max-width: 360px;
       margin-left: auto;
@@ -1120,10 +1145,10 @@ interface InscripcionData {
     .btn-primary:hover:not(:disabled) { background: var(--brand-700); }
 
     .btn-secondary {
-      background: var(--gray-100);
-      color: var(--gray-700);
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
     }
-    .btn-secondary:hover { background: var(--gray-200); }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
 
     .spinner {
       width: 16px;

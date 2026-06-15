@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -7,7 +7,9 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   template: `
     <div class="home">
-      <nav class="home-nav">
+      <div class="parallax-bg" [style.transform]="'translateY(' + scrollY() * 0.4 + 'px)'"></div>
+      <div class="parallax-overlay"></div>
+      <nav class="home-nav" [class.nav-scrolled]="scrollY() > 50">
         <div class="nav-inner">
           <a routerLink="/" class="nav-brand">
             <div class="brand-icon">
@@ -23,7 +25,7 @@ import { RouterLink } from '@angular/router';
       </nav>
 
       <section class="hero">
-        <div class="hero-content">
+        <div class="hero-content" [style.opacity]="scrollY() < 300 ? 1 : Math.max(0, 1 - (scrollY() - 300) / 400)" [style.transform]="'translateY(' + Math.min(scrollY() * 0.15, 60) + 'px)'">
           <div class="hero-badge">Festival Folclórico 2026</div>
           <h1 class="hero-title">
             Precosquin<br/>
@@ -65,12 +67,19 @@ import { RouterLink } from '@angular/router';
         </div>
       </section>
 
+      <div class="scroll-indicator" [style.opacity]="scrollY() > 100 ? 0 : 1">
+        <div class="scroll-mouse">
+          <div class="scroll-wheel"></div>
+        </div>
+        <span>Scroll</span>
+      </div>
+
       <section class="invitation-section">
         <div class="invitation-card">
           <div class="invitation-logos">
-            <img src="assets/logo.svg" alt="Precosquin Puerto Pirámides" class="invitation-logo" />
+            <img src="assets/logo.svg" alt="Precosquin Puerto Pirámides" class="invitation-logo sponsor-logo-transparent" />
             <div class="invitation-divider"></div>
-            <img src="assets/MUNI-LOGO2.svg" alt="Comisión de Fomento Puerto Pirámides" class="invitation-logo" />
+            <img src="assets/MUNI-LOGO2.svg" alt="Comisión de Fomento Puerto Pirámides" class="invitation-logo sponsor-logo-inverted sponsor-logo-large" />
           </div>
           
           <h2 class="invitation-title">INVITACIÓN OFICIAL</h2>
@@ -173,9 +182,9 @@ import { RouterLink } from '@angular/router';
 
       <footer class="home-footer">
         <div class="sponsors-section">
-          <img src="assets/MUNI-LOGO2.svg" alt="Municipalidad" class="sponsor-logo" />
-          <img src="assets/rayentray.png" alt="Rayentray" class="sponsor-logo" />
-          <img src="assets/hidro.jpeg" alt="Hidro" class="sponsor-logo" />
+          <img src="assets/MUNI-LOGO2.svg" alt="Municipalidad" class="sponsor-logo sponsor-logo-inverted sponsor-logo-large" />
+          <img src="assets/rayentray.png" alt="Rayentray" class="sponsor-logo sponsor-logo-transparent" />
+          <img src="assets/hidro.jpeg" alt="Hidro" class="sponsor-logo sponsor-logo-transparent" />
         </div>
         
         <div class="footer-inner">
@@ -216,10 +225,32 @@ import { RouterLink } from '@angular/router';
   styles: [`
     .home {
       min-height: 100vh;
-      background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/assets/home-background.jpg') no-repeat center center fixed; /* Imagen de fondo con overlay */
-      background-size: cover;
       color: #fff;
       font-family: var(--font-sans);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .parallax-bg {
+      position: fixed;
+      top: -20%;
+      left: 0;
+      right: 0;
+      bottom: -20%;
+      background: url('/assets/home-background.jpg') no-repeat center center;
+      background-size: cover;
+      z-index: -2;
+      will-change: transform;
+    }
+
+    .parallax-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+      z-index: -1;
     }
 
     .home-nav {
@@ -228,9 +259,17 @@ import { RouterLink } from '@angular/router';
       left: 0;
       right: 0;
       z-index: 100;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .nav-scrolled {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
     }
 
     .nav-inner {
@@ -367,6 +406,8 @@ import { RouterLink } from '@angular/router';
       max-width: 1440px;
       margin: 0 auto;
       padding: var(--space-16) var(--space-6);
+      position: relative;
+      z-index: 1;
     }
 
     .invitation-card {
@@ -382,21 +423,30 @@ import { RouterLink } from '@angular/router';
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: var(--space-6);
+      gap: var(--space-12);
       margin-bottom: var(--space-8);
+      padding: var(--space-10);
+      background: #1e293b;
+      border-radius: var(--radius-2xl);
+      border: 3px solid rgba(99, 102, 241, 0.3);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
     }
 
     .invitation-logo {
       height: 80px;
       width: auto;
       object-fit: contain;
-      filter: brightness(0) invert(1);
+      padding: var(--space-2);
+      background: white;
+      border-radius: var(--radius-md);
+      border: 1px solid #334155;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     .invitation-divider {
       width: 2px;
-      height: 60px;
-      background: linear-gradient(to bottom, transparent, var(--brand-400), transparent);
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, var(--brand-600), transparent);
     }
 
     .invitation-title {
@@ -530,6 +580,8 @@ import { RouterLink } from '@angular/router';
       max-width: 1440px; /* Aumentar ancho para pantallas grandes */
       margin: 0 auto;
       padding: var(--space-16) var(--space-6);
+      position: relative;
+      z-index: 1;
     }
 
     .info-grid {
@@ -582,26 +634,61 @@ import { RouterLink } from '@angular/router';
     .home-footer {
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       padding: var(--space-6);
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5));
+      position: relative;
+      z-index: 1;
     }
 
     .sponsors-section {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: var(--space-8);
-      margin-bottom: var(--space-6);
-      padding-bottom: var(--space-6);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      gap: var(--space-12);
+      margin-bottom: var(--space-8);
+      padding: var(--space-8);
+      background: #1e293b;
+      border-radius: var(--radius-2xl);
+      border: 2px solid rgba(99, 102, 241, 0.3);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .sponsor-logo {
       height: 80px;
-      width: 160px;
+      width: auto;
+      max-width: 160px;
       object-fit: contain;
+      padding: var(--space-2);
+      background: white;
+      border-radius: var(--radius-md);
+      border: 1px solid #334155;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .sponsor-logo-inverted {
+      filter: brightness(0) invert(1);
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .sponsor-logo-large {
+      height: 110px;
+      max-width: 220px;
+    }
+
+    .sponsor-logo-transparent {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
     }
 
     .footer-inner {
-      max-width: 1440px; /* Aumentar ancho para pantallas grandes */
+      max-width: 1440px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -624,7 +711,7 @@ import { RouterLink } from '@angular/router';
 
     .social-label {
       font-size: var(--text-sm);
-      color: #94a3b8;
+      color: #cbd5e1;
       font-weight: var(--weight-medium);
     }
 
@@ -639,9 +726,9 @@ import { RouterLink } from '@angular/router';
       align-items: center;
       gap: var(--space-2);
       padding: var(--space-3) var(--space-4);
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(99, 102, 241, 0.2);
       border-radius: var(--radius-lg);
-      color: #fff;
+      color: #e0e7ff;
       text-decoration: none;
       transition: all 0.2s ease;
       font-size: var(--text-sm);
@@ -649,7 +736,7 @@ import { RouterLink } from '@angular/router';
     }
 
     .social-link:hover {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(99, 102, 241, 0.3);
       transform: translateY(-2px);
     }
 
@@ -760,6 +847,49 @@ import { RouterLink } from '@angular/router';
       }
     }
 
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+
+    .scroll-indicator span {
+      font-size: var(--text-xs);
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    .scroll-mouse {
+      width: 24px;
+      height: 38px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      padding-top: 6px;
+    }
+
+    .scroll-wheel {
+      width: 3px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 2px;
+      animation: scroll-bounce 1.5s ease-in-out infinite;
+    }
+
+    @keyframes scroll-bounce {
+      0%, 100% { transform: translateY(0); opacity: 1; }
+      50% { transform: translateY(6px); opacity: 0.3; }
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -799,4 +929,10 @@ import { RouterLink } from '@angular/router';
 })
 export class HomePageComponent {
   currentYear = new Date().getFullYear();
+  scrollY = signal(0);
+
+  @HostListener('window:scroll')
+  onScroll() {
+    this.scrollY.set(window.scrollY);
+  }
 }
