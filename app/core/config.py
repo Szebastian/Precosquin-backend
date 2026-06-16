@@ -28,6 +28,7 @@ class Settings(BaseSettings):
         "https://precosquinpiramides.com",
         "http://precosquinpiramides.com",
         "https://precosquin-frontend.onrender.com",
+        "https://precosquin-backend.onrender.com",
     ]
     ALLOWED_HOSTS: List[str] = ["*"]
 

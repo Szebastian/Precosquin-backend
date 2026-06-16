@@ -21,8 +21,8 @@ services:
       - key: JWT_ALGORITHM
         value: HS256
       - key: FRONTEND_URL
-        value: https://precosquin.com
+        value: https://precosquinpiramides.com
       - key: API_URL
-        value: https://precosquin-api.onrender.com
+        value: https://precosquin-backend.onrender.com
       - key: LOG_LEVEL
         value: info
