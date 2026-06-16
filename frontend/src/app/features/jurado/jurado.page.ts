@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface JuryMember {
   id: string;
@@ -1154,7 +1155,7 @@ export class JuradoPageComponent implements OnInit {
 
   loadMembers(): void {
     this.loading.set(true);
-    this.http.get<JuryMember[]>('/api/v1/jury/members').subscribe({
+    this.http.get<JuryMember[]>(`${environment.apiUrl}/jury/members`).subscribe({
       next: (members) => {
         this.members.set(members);
         this.activeCount.set(members.filter(m => m.is_active).length);
@@ -1181,7 +1182,7 @@ export class JuradoPageComponent implements OnInit {
     this.inviting.set(true);
     this.inviteError.set('');
 
-    this.http.post<InviteResult>('/api/v1/jury/members/invite', this.inviteForm).subscribe({
+    this.http.post<InviteResult>(`${environment.apiUrl}/jury/members/invite`, this.inviteForm).subscribe({
       next: (result) => {
         this.inviting.set(false);
         this.inviteResult.set(result);
@@ -1213,7 +1214,7 @@ export class JuradoPageComponent implements OnInit {
 
   removeMember(member: JuryMember): void {
     if (!confirm(`¿Remover a ${member.full_name} del jurado?`)) return;
-    this.http.delete(`/api/v1/jury/members/${member.id}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/jury/members/${member.id}`).subscribe({
       next: () => this.loadMembers(),
       error: (err) => {
         console.error('Error al remover miembro:', err);
