@@ -18,10 +18,21 @@ class InscriptionCreate(BaseModel):
     full_name: str
     stage_name: Optional[str] = None
     dni: Optional[str] = None
+    birth_date: Optional[str] = None
+    age: Optional[int] = None
+    address: Optional[str] = None
+    locality: Optional[str] = None
     province: Optional[str] = None
     city: Optional[str] = None
     experience_years: Optional[int] = None
     bio: Optional[str] = None
+    technical_needs: Optional[str] = None
+    proposal_name: Optional[str] = None
+    choreographer_name: Optional[str] = None
+    style: Optional[str] = None
+    dance_list: Optional[str] = None
+    themes: Optional[list] = None
+    members: Optional[list] = None
     website: Optional[str] = None
     instagram: Optional[str] = None
     youtube: Optional[str] = None
@@ -35,10 +46,24 @@ class InscriptionResponse(BaseModel):
     category: str
     subcategory: str
     full_name: str
-    stage_name: Optional[str]
+    stage_name: Optional[str] = None
     status: str
     created_at: str
     updated_at: str
+    dni: Optional[str] = None
+    birth_date: Optional[str] = None
+    age: Optional[int] = None
+    address: Optional[str] = None
+    locality: Optional[str] = None
+    province: Optional[str] = None
+    bio: Optional[str] = None
+    technical_needs: Optional[str] = None
+    proposal_name: Optional[str] = None
+    choreographer_name: Optional[str] = None
+    style: Optional[str] = None
+    dance_list: Optional[str] = None
+    themes: Optional[list] = None
+    members: Optional[list] = None
 
 
 class InscriptionListResponse(BaseModel):
