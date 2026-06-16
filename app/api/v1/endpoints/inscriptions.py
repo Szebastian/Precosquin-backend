@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, status, Query, Depends
+from fastapi import APIRouter, HTTPException, status, Query, Depends, UploadFile, File, Form
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
+import uuid
 
 from app.core.deps import get_current_user, require_role, CurrentUser
 from app.db.session import get_supabase
@@ -181,3 +182,54 @@ async def update_inscription_status(
     }).execute()
 
     return {"message": f"Inscripción actualizada a {new_status}"}
+
+
+@router.post("/upload/{inscription_id}")
+async def upload_inscription_file(
+    inscription_id: str,
+    file_type: str = Query(..., description="dni_front, dni_back, promo_photo, lyrics, score"),
+    file: UploadFile = File(...),
+):
+    db = get_supabase()
+
+    existing = db.table("inscriptions").select("id").eq("id", inscription_id).single().execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Inscripción no encontrada")
+
+    allowed_types = {
+        "dni_front": ["image/jpeg", "image/png"],
+        "dni_back": ["image/jpeg", "image/png"],
+        "promo_photo": ["image/jpeg", "image/png"],
+        "lyrics": ["application/pdf", "text/plain", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+        "score": ["application/pdf", "image/jpeg", "image/png"],
+    }
+
+    if file_type not in allowed_types:
+        raise HTTPException(status_code=400, detail=f"Tipo de archivo inválido: {file_type}")
+
+    if file.content_type not in allowed_types[file_type]:
+        raise HTTPException(status_code=400, detail=f"Tipo de archivo no permitido para {file_type}: {file.content_type}")
+
+    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "bin"
+    path = f"inscriptions/{inscription_id}/{file_type}.{ext}"
+
+    content = await file.read()
+
+    try:
+        db.storage.from_("inscriptions").upload(path, content, {
+            "content-type": file.content_type,
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al subir archivo: {str(e)}")
+
+    column_map = {
+        "dni_front": "dni_front_url",
+        "dni_back": "dni_back_url",
+        "promo_photo": "promo_photo_url",
+        "lyrics": "lyrics_url",
+        "score": "score_url",
+    }
+
+    db.table("inscriptions").update({column_map[file_type]: path}).eq("id", inscription_id).execute()
+
+    return {"path": path, "message": "Archivo subido correctamente"}
