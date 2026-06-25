@@ -4,39 +4,39 @@
    ============================================ */
 
 /* --- Google Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ============================================
    1. DESIGN TOKENS (CSS Custom Properties)
    ============================================ */
 :root {
-  /* Colors - Brand */
-  --brand-50: #F7F2EB; /* Muy claro, cerca del beige del logo */
-  --brand-100: #E7D6C1; /* Beige del logo */
-  --brand-200: #D8C5B0;
-  --brand-300: #C7B49F;
-  --brand-400: #B8A38E;
-  --brand-500: #A8927D;
-  --brand-600: #99816C; /* Tono intermedio, base para ciertos elementos */
-  --brand-700: #89705B;
-  --brand-800: #7A5F4A;
-  --brand-900: #222428; /* Oscuro del logo, para texto principal y fondos */
+  /* Colors - Brand (Blue from Poster #4C8BE6) */
+  --brand-50: #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-200: #bfdbfe;
+  --brand-300: #93c5fd;
+  --brand-400: #60a5fa;
+  --brand-500: #4c8be6; /* Primary Blue from Poster */
+  --brand-600: #2563eb;
+  --brand-700: #1d4ed8;
+  --brand-800: #1e40af;
+  --brand-900: #1e3a8a;
 
   /* Colors - Accent */
-  --brand-accent: #C76E4B; /* Naranja del logo */
+  --brand-accent: #d1ba73; /* Gold/Mustard from Poster */
 
-  /* Colors - Neutral */
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
-  --gray-950: #030712;
+  /* Colors - Neutral (Base Beige: #eae4db) */
+  --gray-50: #eae4db; /* Base background */
+  --gray-100: #e3dccf;
+  --gray-200: #d1c8b8;
+  --gray-300: #bab09e;
+  --gray-400: #a19582;
+  --gray-500: #857a68;
+  --gray-600: #695f4e;
+  --gray-700: #4d4638;
+  --gray-800: #302b23;
+  --gray-900: #1a1a1a; /* Very dark text */
+  --gray-950: #0a0a0a;
 
   /* Colors - Semantic */
   --success-50: #f0fdf4;
@@ -64,8 +64,9 @@
   --info-700: #1d4ed8;
 
   /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Montserrat', sans-serif; /* For Headings */
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -144,27 +145,28 @@
    1B. DARK MODE OVERRIDES
    ============================================ */
 .dark {
-    --gray-50: #0f1117;
-    --gray-100: #161922;
-    --gray-200: #1e2130;
-    --gray-300: #2a2e3f;
-    --gray-400: #52576a;
-    --gray-500: #6b7280;
-    --gray-600: #9ca3af;
-    --gray-700: #c8ccd6;
-    --gray-800: #e2e5eb;
-    --gray-900: #f3f4f6;
+    --gray-50: #12141a; /* Very dark background for dark mode */
+    --gray-100: #1c1e26;
+    --gray-200: #272a35;
+    --gray-300: #3b3f4e;
+    --gray-400: #555b6e;
+    --gray-500: #7b8194;
+    --gray-600: #a1a6b4;
+    --gray-700: #c6c9d2;
+    --gray-800: #e4e5e8;
+    --gray-900: #f5f6f7;
     --gray-950: #ffffff;
-  --brand-50: #2a2e3f; /* Inverso de brand-900 (oscuro del logo) */
-    --brand-100: #374151;
-    --brand-200: #4b5563;
-    --brand-300: #6b7280;
-    --brand-400: #9a8979; /* Tono adaptado para modo oscuro */
-    --brand-500: #B8A38E; /* Tono adaptado para modo oscuro */
-    --brand-600: #D8C5B0; /* Beige del logo, ahora como un tono claro en oscuro */
-    --brand-700: #E7D6C1;
-    --brand-800: #F7F2EB;
-    --brand-900: #FFFFFF; /* Blanco para texto principal en modo oscuro */
+    
+    --brand-50: #1e3a8a; 
+    --brand-100: #1e40af;
+    --brand-200: #1d4ed8;
+    --brand-300: #2563eb;
+    --brand-400: #4c8be6; /* Primary Blue remains visible */
+    --brand-500: #60a5fa; 
+    --brand-600: #93c5fd; 
+    --brand-700: #bfdbfe;
+    --brand-800: #dbeafe;
+    --brand-900: #eff6ff;
 
   --success-50: #052e16;
   --success-100: #14532d;
@@ -191,7 +193,7 @@
   --info-700: #93c5fd;
 
   /* Colors - Accent (Dark Mode) */
-  --brand-accent: #FF8C42; /* Naranja ligeramente más brillante para contraste en modo oscuro */
+  --brand-accent: #e5cd85; /* Un tono ligeramente más brillante del dorado para modo oscuro */
 
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
@@ -321,10 +323,11 @@ ul, ol {
 
 /* 3. TYPOGRAPHY */
 h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display); /* Aplicar Montserrat a los títulos */
   font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
   color: var(--gray-900);
-  letter-spacing: var(--letter-spacing-tight); /* Nuevo: Añadido letter-spacing */
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 h1 { font-size: var(--text-3xl); }

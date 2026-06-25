@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface DashboardStats {
   total_inscripciones: number;
@@ -733,7 +734,7 @@ export class DashboardPageComponent implements OnInit {
   }
 
   private loadStats(): void {
-    this.http.get<DashboardStats>('/api/v1/dashboard/stats').subscribe({
+    this.http.get<DashboardStats>(`${environment.apiUrl}/dashboard/stats`).subscribe({
       next: (data) => this.stats.set(data),
       error: () => {
         this.stats.set({

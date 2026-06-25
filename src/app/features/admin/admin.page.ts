@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface User {
   id: string;
@@ -819,7 +820,7 @@ export class AdminPageComponent implements OnInit {
   loadUsers(): void {
     this.loading.set(true);
     const roleParam = this.activeTab() !== 'all' ? `?role=${this.activeTab()}` : '';
-    this.http.get<User[]>(`/api/v1/admin/users${roleParam}`).subscribe({
+    this.http.get<User[]>(`${environment.apiUrl}/admin/users${roleParam}`).subscribe({
       next: (users) => {
         this.allUsers.set(users);
         this.filterUsers();
@@ -866,7 +867,7 @@ export class AdminPageComponent implements OnInit {
     this.inviting.set(true);
     this.inviteError.set('');
 
-    this.http.post<InviteResult>('/api/v1/admin/users/invite', this.inviteForm).subscribe({
+    this.http.post<InviteResult>(`${environment.apiUrl}/admin/users/invite`, this.inviteForm).subscribe({
       next: (result) => {
         this.inviting.set(false);
         this.inviteResult.set(result);
@@ -895,7 +896,7 @@ export class AdminPageComponent implements OnInit {
     const user = this.editingUser();
     if (!user) return;
 
-    this.http.patch(`/api/v1/admin/users/${user.id}`, { role: this.editRole }).subscribe({
+    this.http.patch(`${environment.apiUrl}/admin/users/${user.id}`, { role: this.editRole }).subscribe({
       next: () => {
         this.editingUser.set(null);
         this.loadUsers();
@@ -905,7 +906,7 @@ export class AdminPageComponent implements OnInit {
 
   deactivateUser(user: User): void {
     if (!confirm(`¿Desactivar a ${user.full_name}?`)) return;
-    this.http.delete(`/api/v1/admin/users/${user.id}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/admin/users/${user.id}`).subscribe({
       next: () => this.loadUsers()
     });
   }

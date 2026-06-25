@@ -1,8 +1,9 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 interface InscripcionResult {
   id: string;
@@ -16,15 +17,53 @@ interface InscripcionResult {
   created_at: string;
 }
 
+interface Member {
+  fullName: string;
+  dni: string;
+  age: number | null;
+  role: string;
+}
+
+interface ThemeRow {
+  title: string;
+  rhythm: string;
+  author: string;
+}
+
 interface InscripcionData {
   fullName: string;
-  email: string;
-  phone: string;
   dni: string;
+  birthDate: string;
+  age: number | null;
+  address: string;
+  locality: string;
+  province: string;
+  phone: string;
+  email: string;
   category: string;
   subcategory: string;
+  members: Member[];
   artisticName: string;
-  bio: string;
+  themes: ThemeRow[];
+  technicalNeeds: string;
+  proposalName: string;
+  choreographerName: string;
+  style: string;
+  danceList: string;
+  biography: string;
+  dniFrontFile: File | null;
+  dniBackFile: File | null;
+  promoPhotoFile: File | null;
+  lyricsFile: File | null;
+  scoreFile: File | null;
+  dniFrontName: string;
+  dniBackName: string;
+  promoPhotoName: string;
+  lyricsFileName: string;
+  scoreFileName: string;
+  acceptRegulations: boolean;
+  acceptImageRights: boolean;
+  acceptDataTruth: boolean;
 }
 
 @Component({
@@ -33,7 +72,7 @@ interface InscripcionData {
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="public-page">
-      @if (currentStep() < 5) {
+      @if (currentStep() < 7) {
         <nav class="form-nav">
           <a routerLink="/" class="nav-brand">
             <img src="assets/logo.svg" alt="Precosquin" class="nav-logo" />
@@ -43,7 +82,7 @@ interface InscripcionData {
         </nav>
       }
 
-      @if (currentStep() < 5) {
+      @if (currentStep() < 7) {
         <div class="form-wrapper">
           <div class="form-card animate-scale-in">
             <div class="form-header">
@@ -52,7 +91,7 @@ interface InscripcionData {
             </div>
 
             <div class="steps-indicator">
-              @for (step of steps; track step.number; let i = $index) {
+              @for (step of visibleSteps(); track step.number; let i = $index) {
                 <div class="step" [class.active]="currentStep() === step.number" [class.completed]="currentStep() > step.number">
                   <div class="step-circle">
                     @if (currentStep() > step.number) {
@@ -65,48 +104,82 @@ interface InscripcionData {
                   </div>
                   <span class="step-label">{{ step.label }}</span>
                 </div>
-                @if (i < steps.length - 1) {
+                @if (i < visibleSteps().length - 1) {
                   <div class="step-line" [class.completed]="currentStep() > step.number"></div>
                 }
               }
             </div>
 
             <form (submit)="onSubmit($event)" class="inscription-form">
+
             @if (currentStep() === 1) {
               <div class="step-content animate-fade-in">
-                <h2 class="step-title">Datos Personales</h2>
-                <p class="step-desc">Contanos sobre vos para poder contactarte</p>
+                <h2 class="step-title">Datos Generales del Participante</h2>
+                <p class="step-desc">Completá tus datos personales de contacto</p>
 
                 <div class="form-group">
-                  <label class="form-label" for="fullName">Nombre Completo *</label>
+                  <label class="form-label" for="fullName">Nombre y apellido *</label>
                   <input type="text" id="fullName" name="fullName" required class="form-input"
                     [(ngModel)]="data.fullName" placeholder="Ej: Juan Carlos Gómez" />
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
-                    <label class="form-label" for="email">Email *</label>
-                    <input type="email" id="email" name="email" required class="form-input"
-                      [(ngModel)]="data.email" placeholder="tu&#64;ejemplo.com" />
+                    <label class="form-label" for="dni">DNI *</label>
+                    <input type="text" id="dni" name="dni" required class="form-input"
+                      [(ngModel)]="data.dni" placeholder="12345678" />
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="phone">Teléfono / WhatsApp *</label>
-                    <input type="tel" id="phone" name="phone" required class="form-input"
-                      [(ngModel)]="data.phone" placeholder="+54 11 1234-5678" />
+                    <label class="form-label" for="birthDate">Fecha de nacimiento *</label>
+                    <input type="date" id="birthDate" name="birthDate" required class="form-input"
+                      [(ngModel)]="data.birthDate" (ngModelChange)="onBirthDateChange()" />
                   </div>
                 </div>
 
-                <div class="form-group">
-                  <label class="form-label" for="dni">DNI</label>
-                  <input type="text" id="dni" name="dni" class="form-input"
-                    [(ngModel)]="data.dni" placeholder="12345678" />
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="age">Edad</label>
+                    <input type="text" id="age" name="age" class="form-input form-input-readonly"
+                      [value]="data.age !== null ? data.age + ' años' : '—'" readonly />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="address">Domicilio *</label>
+                    <input type="text" id="address" name="address" required class="form-input"
+                      [(ngModel)]="data.address" placeholder="Calle, número, piso, depto" />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="locality">Localidad *</label>
+                    <input type="text" id="locality" name="locality" required class="form-input"
+                      [(ngModel)]="data.locality" placeholder="Ej: Puerto Pirámides" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="province">Provincia *</label>
+                    <input type="text" id="province" name="province" required class="form-input"
+                      [(ngModel)]="data.province" placeholder="Ej: Chubut" />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="phone">Teléfono de contacto *</label>
+                    <input type="tel" id="phone" name="phone" required class="form-input"
+                      [(ngModel)]="data.phone" placeholder="+54 11 1234-5678" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="email">Correo electrónico *</label>
+                    <input type="email" id="email" name="email" required class="form-input"
+                      [(ngModel)]="data.email" placeholder="tu&#64;ejemplo.com" />
+                  </div>
                 </div>
               </div>
             }
 
             @if (currentStep() === 2) {
               <div class="step-content animate-fade-in">
-                <h2 class="step-title">Categoría Artística</h2>
+                <h2 class="step-title">Rubro de Participación</h2>
                 <p class="step-desc">Seleccioná la categoría y subcategoría de tu presentación</p>
 
                 <div class="form-group">
@@ -121,7 +194,7 @@ interface InscripcionData {
                       </div>
                       <div>
                         <span class="category-name">Música</span>
-                        <span class="category-desc">5 subcategorías</span>
+                        <span class="category-desc">6 subcategorías</span>
                       </div>
                     </label>
                     <label class="category-card" [class.selected]="data.category === 'danza'">
@@ -157,29 +230,258 @@ interface InscripcionData {
 
             @if (currentStep() === 3) {
               <div class="step-content animate-fade-in">
-                <h2 class="step-title">Información Artística</h2>
-                <p class="step-desc">Contanos un poco más sobre tu arte</p>
+                <h2 class="step-title">Integrantes del Grupo</h2>
+                <p class="step-desc">Agregá los datos de cada integrante</p>
 
-                <div class="form-group">
-                  <label class="form-label" for="artisticName">Nombre Artístico</label>
-                  <input type="text" id="artisticName" name="artisticName" class="form-input"
-                    [(ngModel)]="data.artisticName" placeholder="Si tenés nombre artístico, ingresalo" />
-                </div>
+                @for (member of data.members; track $index; let i = $index) {
+                  <div class="member-card">
+                    <div class="member-header">
+                      <h3 class="member-number">Integrante {{ i + 1 }}</h3>
+                      @if (data.members.length > 1) {
+                        <button type="button" class="btn-remove" (click)="removeMember(i)">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                          </svg>
+                          Quitar
+                        </button>
+                      }
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label class="form-label">Nombre completo *</label>
+                        <input type="text" class="form-input" [(ngModel)]="member.fullName" placeholder="Nombre y apellido" [name]="'memberName' + i" required />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">DNI *</label>
+                        <input type="text" class="form-input" [(ngModel)]="member.dni" placeholder="12345678" [name]="'memberDni' + i" required />
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label class="form-label">Edad</label>
+                        <input type="number" class="form-input" [(ngModel)]="member.age" placeholder="Ej: 25" [name]="'memberAge' + i" min="0" max="120" />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Función *</label>
+                        <select class="form-input" [(ngModel)]="member.role" [name]="'memberRole' + i" required>
+                          <option value="">Seleccionar función</option>
+                          <option value="cantante">Cantante</option>
+                          <option value="guitarrista">Guitarrista</option>
+                          <option value="bailarin">Bailarín</option>
+                          <option value="baterista">Baterista</option>
+                          <option value="bajista">Bajista</option>
+                          <option value="tecladista">Tecladista</option>
+                          <option value="violinista">Violinista</option>
+                          <option value="acordeonista">Acordeonista</option>
+                          <option value="percusionista">Percusionista</option>
+                          <option value="corista">Corista</option>
+                          <option value="otro">Otro</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                }
 
-                <div class="form-group">
-                  <label class="form-label" for="bio">Biografía / Descripción artística</label>
-                  <textarea id="bio" name="bio" class="form-textarea" rows="5"
-                    [(ngModel)]="data.bio"
-                    placeholder="Contanos sobre tu trayectoria, experiencia, logros..."></textarea>
-                  <span class="form-hint">Opcional pero recomendado para el jurado</span>
-                </div>
+                <button type="button" class="btn btn-add-member" (click)="addMember()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14"/><path d="M5 12h14"/>
+                  </svg>
+                  Agregar Integrante
+                </button>
               </div>
             }
 
             @if (currentStep() === 4) {
               <div class="step-content animate-fade-in">
-                <h2 class="step-title">Revisá tu inscripción</h2>
-                <p class="step-desc">Verificá que toda la información sea correcta antes de enviar</p>
+                @if (data.category === 'musica') {
+                  <h2 class="step-title">Información Artística — Música</h2>
+                  <p class="step-desc">Completá los datos de tu presentación musical</p>
+
+                  <div class="form-group">
+                    <label class="form-label" for="artisticName">Nombre artístico</label>
+                    <input type="text" id="artisticName" name="artisticName" class="form-input"
+                      [(ngModel)]="data.artisticName" placeholder="Si tenés nombre artístico, ingresalo" />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Listado de 6 temas</label>
+                    <div class="themes-table-wrapper">
+                      <table class="themes-table">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Título</th>
+                            <th>Ritmo</th>
+                            <th>Autor</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (theme of data.themes; track $index; let i = $index) {
+                            <tr>
+                              <td class="theme-number">{{ i + 1 }}</td>
+                              <td><input type="text" class="form-input table-input" [(ngModel)]="theme.title" [name]="'themeTitle' + i" placeholder="Título del tema" /></td>
+                              <td><input type="text" class="form-input table-input" [(ngModel)]="theme.rhythm" [name]="'themeRhythm' + i" placeholder="Ej: Chacarera" /></td>
+                              <td><input type="text" class="form-input table-input" [(ngModel)]="theme.author" [name]="'themeAuthor' + i" placeholder="Autor / compositor" /></td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="technicalNeeds">Necesidades técnicas / Planta de sonido</label>
+                    <textarea id="technicalNeeds" name="technicalNeeds" class="form-textarea" rows="4"
+                      [(ngModel)]="data.technicalNeeds"
+                      placeholder="Describí los instrumentos, equipamiento o condiciones técnicas necesarias para tu presentación..."></textarea>
+                  </div>
+                }
+
+                @if (data.category === 'danza') {
+                  <h2 class="step-title">Información Artística — Danza</h2>
+                  <p class="step-desc">Completá los datos de tu presentación de danza</p>
+
+                  <div class="form-group">
+                    <label class="form-label" for="proposalName">Nombre de la propuesta</label>
+                    <input type="text" id="proposalName" name="proposalName" class="form-input"
+                      [(ngModel)]="data.proposalName" placeholder="Ej: 'Zamba del Tropero'" />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="choreographerName">Nombre del coreógrafo</label>
+                    <input type="text" id="choreographerName" name="choreographerName" class="form-input"
+                      [(ngModel)]="data.choreographerName" placeholder="Nombre del coreógrafo" />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="style">Estilo</label>
+                    <textarea id="style" name="style" class="form-textarea" rows="4"
+                      [(ngModel)]="data.style"
+                      placeholder="Describí el estilo de la presentación (folklórico, contemporáneo, etc.)..."></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="danceList">Listado de danzas o cuadros</label>
+                    <textarea id="danceList" name="danceList" class="form-textarea" rows="4"
+                      [(ngModel)]="data.danceList"
+                      placeholder="Listá las danzas o cuadros que componen la presentación..."></textarea>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (currentStep() === 5) {
+              <div class="step-content animate-fade-in">
+                <h2 class="step-title">Archivos a Adjuntar</h2>
+                <p class="step-desc">Subí los archivos requeridos para completar tu inscripción</p>
+
+                <div class="form-group">
+                  <label class="form-label">Foto de DNI — Frente</label>
+                  <div class="file-upload-area">
+                    <label class="file-upload-btn">
+                      <input type="file" #dniFrontInput accept="image/*" hidden (change)="onFileSelect($event, 'dniFrontFile')" />
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                      </svg>
+                      Seleccionar archivo
+                    </label>
+                    <span class="file-name-display">{{ data.dniFrontName || 'Ningún archivo seleccionado' }}</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Foto de DNI — Dorso</label>
+                  <div class="file-upload-area">
+                    <label class="file-upload-btn">
+                      <input type="file" #dniBackInput accept="image/*" hidden (change)="onFileSelect($event, 'dniBackFile')" />
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                      </svg>
+                      Seleccionar archivo
+                    </label>
+                    <span class="file-name-display">{{ data.dniBackName || 'Ningún archivo seleccionado' }}</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Foto promocional del artista o grupo</label>
+                  <div class="file-upload-area">
+                    <label class="file-upload-btn">
+                      <input type="file" #promoPhotoInput accept="image/*" hidden (change)="onFileSelect($event, 'promoPhotoFile')" />
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                      </svg>
+                      Seleccionar archivo
+                    </label>
+                    <span class="file-name-display">{{ data.promoPhotoName || 'Ningún archivo seleccionado' }}</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="biography">Breve biografía artística</label>
+                  <textarea id="biography" name="biography" class="form-textarea" rows="5"
+                    [(ngModel)]="data.biography"
+                    placeholder="Contanos sobre tu trayectoria, experiencia, logros..."></textarea>
+                  <span class="form-hint">Opcional pero recomendado para el jurado</span>
+                </div>
+
+                @if (data.subcategory === 'cancion_inedita') {
+                  <div class="file-section-divider">
+                    <h3 class="section-subtitle">Archivos para Canción Inédita</h3>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Letra de la canción</label>
+                    <div class="file-upload-area">
+                      <label class="file-upload-btn">
+                        <input type="file" #lyricsInput accept=".pdf,.doc,.docx,.txt" hidden (change)="onFileSelect($event, 'lyricsFile')" />
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        Seleccionar archivo
+                      </label>
+                      <span class="file-name-display">{{ data.lyricsFileName || 'Ningún archivo seleccionado' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Partitura</label>
+                    <div class="file-upload-area">
+                      <label class="file-upload-btn">
+                        <input type="file" #scoreInput accept=".pdf,.png,.jpg,.jpeg" hidden (change)="onFileSelect($event, 'scoreFile')" />
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        Seleccionar archivo
+                      </label>
+                      <span class="file-name-display">{{ data.scoreFileName || 'Ningún archivo seleccionado' }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (currentStep() === 6) {
+              <div class="step-content animate-fade-in">
+                <h2 class="step-title">Declaración Jurada y Revisión</h2>
+                <p class="step-desc">Verificá tu información y aceptá las condiciones</p>
+
+                <div class="declaration-section">
+                  <label class="checkbox-label">
+                    <input type="checkbox" [(ngModel)]="data.acceptRegulations" name="acceptRegulations" />
+                    <span>Acepto el <a href="#" class="text-brand">reglamento del certamen</a> *</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" [(ngModel)]="data.acceptImageRights" name="acceptImageRights" />
+                    <span>Autorizo la difusión de imágenes y videos de mi presentación *</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" [(ngModel)]="data.acceptDataTruth" name="acceptDataTruth" />
+                    <span>Declaro que los datos consignados son veraces *</span>
+                  </label>
+                </div>
+
+                <div class="review-divider"></div>
 
                 <div class="review-section">
                   <div class="review-header">
@@ -192,23 +494,43 @@ interface InscripcionData {
                       <span class="review-value">{{ data.fullName || '-' }}</span>
                     </div>
                     <div class="review-item">
-                      <span class="review-label">Email</span>
-                      <span class="review-value">{{ data.email || '-' }}</span>
+                      <span class="review-label">DNI</span>
+                      <span class="review-value">{{ data.dni || '-' }}</span>
+                    </div>
+                    <div class="review-item">
+                      <span class="review-label">Fecha de Nacimiento</span>
+                      <span class="review-value">{{ data.birthDate || '-' }}</span>
+                    </div>
+                    <div class="review-item">
+                      <span class="review-label">Edad</span>
+                      <span class="review-value">{{ data.age !== null ? data.age + ' años' : '-' }}</span>
+                    </div>
+                    <div class="review-item full-width">
+                      <span class="review-label">Domicilio</span>
+                      <span class="review-value">{{ data.address || '-' }}</span>
+                    </div>
+                    <div class="review-item">
+                      <span class="review-label">Localidad</span>
+                      <span class="review-value">{{ data.locality || '-' }}</span>
+                    </div>
+                    <div class="review-item">
+                      <span class="review-label">Provincia</span>
+                      <span class="review-value">{{ data.province || '-' }}</span>
                     </div>
                     <div class="review-item">
                       <span class="review-label">Teléfono</span>
                       <span class="review-value">{{ data.phone || '-' }}</span>
                     </div>
                     <div class="review-item">
-                      <span class="review-label">DNI</span>
-                      <span class="review-value">{{ data.dni || 'No ingresado' }}</span>
+                      <span class="review-label">Email</span>
+                      <span class="review-value">{{ data.email || '-' }}</span>
                     </div>
                   </div>
                 </div>
 
                 <div class="review-section">
                   <div class="review-header">
-                    <h3>Categoría</h3>
+                    <h3>Rubro de Participación</h3>
                     <button type="button" class="btn-edit" (click)="goToStep(2)">Editar</button>
                   </div>
                   <div class="review-grid">
@@ -223,28 +545,124 @@ interface InscripcionData {
                   </div>
                 </div>
 
+                @if (isGroupType()) {
+                  <div class="review-section">
+                    <div class="review-header">
+                      <h3>Integrantes</h3>
+                      <button type="button" class="btn-edit" (click)="goToStep(3)">Editar</button>
+                    </div>
+                    <div class="review-grid">
+                      @for (member of data.members; track $index; let i = $index) {
+                        <div class="review-item full-width">
+                          <span class="review-label">Integrante {{ i + 1 }}</span>
+                          <span class="review-value">{{ member.fullName || '-' }} — {{ member.role || '-' }} @if (member.dni) { (DNI: {{ member.dni }}) } @if (member.age) { · {{ member.age }} años }</span>
+                        </div>
+                      }
+                      @if (data.members.length === 0) {
+                        <div class="review-item full-width">
+                          <span class="review-value review-empty">No se cargaron integrantes</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
                 <div class="review-section">
                   <div class="review-header">
                     <h3>Información Artística</h3>
-                    <button type="button" class="btn-edit" (click)="goToStep(3)">Editar</button>
+                    <button type="button" class="btn-edit" (click)="goToStep(4)">Editar</button>
                   </div>
                   <div class="review-grid">
-                    <div class="review-item">
-                      <span class="review-label">Nombre Artístico</span>
-                      <span class="review-value">{{ data.artisticName || 'No ingresado' }}</span>
-                    </div>
-                    <div class="review-item full-width">
-                      <span class="review-label">Biografía</span>
-                      <span class="review-value">{{ data.bio || 'No ingresada' }}</span>
-                    </div>
+                    @if (data.category === 'musica') {
+                      <div class="review-item">
+                        <span class="review-label">Nombre Artístico</span>
+                        <span class="review-value">{{ data.artisticName || 'No ingresado' }}</span>
+                      </div>
+                      <div class="review-item full-width">
+                        <span class="review-label">Temas</span>
+                        <span class="review-value">{{ getFilledThemesCount() }} de 6 temas ingresados</span>
+                      </div>
+                      @if (data.technicalNeeds) {
+                        <div class="review-item full-width">
+                          <span class="review-label">Necesidades Técnicas</span>
+                          <span class="review-value">{{ data.technicalNeeds }}</span>
+                        </div>
+                      }
+                    }
+                    @if (data.category === 'danza') {
+                      <div class="review-item">
+                        <span class="review-label">Nombre de la Propuesta</span>
+                        <span class="review-value">{{ data.proposalName || 'No ingresado' }}</span>
+                      </div>
+                      <div class="review-item">
+                        <span class="review-label">Coreógrafo</span>
+                        <span class="review-value">{{ data.choreographerName || 'No ingresado' }}</span>
+                      </div>
+                      @if (data.style) {
+                        <div class="review-item full-width">
+                          <span class="review-label">Estilo</span>
+                          <span class="review-value">{{ data.style }}</span>
+                        </div>
+                      }
+                      @if (data.danceList) {
+                        <div class="review-item full-width">
+                          <span class="review-label">Danzas o Cuadros</span>
+                          <span class="review-value">{{ data.danceList }}</span>
+                        </div>
+                      }
+                    }
                   </div>
                 </div>
 
-                <div class="terms-check">
-                  <label class="checkbox-label">
-                    <input type="checkbox" [(ngModel)]="acceptedTerms" name="terms" />
-                    <span>Acepto los <a href="#" class="text-brand">términos y condiciones</a> del festival</span>
-                  </label>
+                <div class="review-section">
+                  <div class="review-header">
+                    <h3>Archivos Adjuntos</h3>
+                    <button type="button" class="btn-edit" (click)="goToStep(5)">Editar</button>
+                  </div>
+                  <div class="review-grid">
+                    <div class="review-item">
+                      <span class="review-label">DNI Frente</span>
+                      @if (filePreviews['dniFrontFile']) {
+                        <img [src]="filePreviews['dniFrontFile']" class="review-thumb" alt="DNI Frente" />
+                      } @else {
+                        <span class="review-value">{{ data.dniFrontName || 'No adjuntado' }}</span>
+                      }
+                    </div>
+                    <div class="review-item">
+                      <span class="review-label">DNI Dorso</span>
+                      @if (filePreviews['dniBackFile']) {
+                        <img [src]="filePreviews['dniBackFile']" class="review-thumb" alt="DNI Dorso" />
+                      } @else {
+                        <span class="review-value">{{ data.dniBackName || 'No adjuntado' }}</span>
+                      }
+                    </div>
+                    <div class="review-item">
+                      <span class="review-label">Foto Promocional</span>
+                      @if (filePreviews['promoPhotoFile']) {
+                        <img [src]="filePreviews['promoPhotoFile']" class="review-thumb" alt="Foto Promocional" />
+                      } @else {
+                        <span class="review-value">{{ data.promoPhotoName || 'No adjuntada' }}</span>
+                      }
+                    </div>
+                    <div class="review-item full-width">
+                      <span class="review-label">Biografía Artística</span>
+                      <span class="review-value">{{ data.biography || 'No ingresada' }}</span>
+                    </div>
+                    @if (data.subcategory === 'cancion_inedita') {
+                      <div class="review-item">
+                        <span class="review-label">Letra</span>
+                        <span class="review-value">{{ data.lyricsFileName || 'No adjuntada' }}</span>
+                      </div>
+                      <div class="review-item">
+                        <span class="review-label">Partitura</span>
+                        @if (filePreviews['scoreFile']) {
+                          <img [src]="filePreviews['scoreFile']" class="review-thumb" alt="Partitura" />
+                        } @else {
+                          <span class="review-value">{{ data.scoreFileName || 'No adjuntada' }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
                 </div>
               </div>
             }
@@ -275,7 +693,7 @@ interface InscripcionData {
                 @if (error()) {
                   <span class="form-error">{{ error() }}</span>
                 }
-                @if (currentStep() < 4) {
+                @if (currentStep() < 6) {
                   <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="!canProceed()">
                     Siguiente
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -283,7 +701,7 @@ interface InscripcionData {
                     </svg>
                   </button>
                 } @else {
-                  <button type="submit" class="btn btn-primary btn-lg" [disabled]="!acceptedTerms || submitting()">
+                  <button type="submit" class="btn btn-primary btn-lg" [disabled]="!canProceed() || submitting()">
                     @if (submitting()) {
                       <span class="spinner"></span> Enviando...
                     } @else {
@@ -299,7 +717,7 @@ interface InscripcionData {
             <img src="assets/rayentray.png" alt="Rayentray" class="sponsor-logo sponsor-logo-transparent" />
             <img src="assets/hidro.jpeg" alt="Hidro" class="sponsor-logo sponsor-logo-transparent" />
           </div>
-          
+
           <div class="social-container">
             <p class="social-label">Seguinos en las redes:</p>
             <div class="social-section">
@@ -324,7 +742,7 @@ interface InscripcionData {
       </div>
       }
 
-      @if (currentStep() === 5 && inscriptionResult()) {
+      @if (currentStep() === 7 && inscriptionResult()) {
         <div class="constancia-page animate-scale-in" id="constancia">
           <div class="constancia-card">
             <div class="constancia-header">
@@ -354,24 +772,50 @@ interface InscripcionData {
 
               <div class="constancia-field">
                 <span class="constancia-label">Nombre Completo</span>
-                <span class="constancia-value">{{ inscriptionResult()!.full_name }}</span>
+                <span class="constancia-value">{{ data.fullName }}</span>
               </div>
-
-              @if (inscriptionResult()!.stage_name) {
-                <div class="constancia-field">
-                  <span class="constancia-label">Nombre Artístico</span>
-                  <span class="constancia-value">{{ inscriptionResult()!.stage_name }}</span>
-                </div>
-              }
 
               <div class="constancia-row">
                 <div class="constancia-field">
-                  <span class="constancia-label">Email</span>
-                  <span class="constancia-value">{{ inscriptionResult()!.email }}</span>
+                  <span class="constancia-label">DNI</span>
+                  <span class="constancia-value">{{ data.dni }}</span>
                 </div>
                 <div class="constancia-field">
+                  <span class="constancia-label">Fecha de Nacimiento</span>
+                  <span class="constancia-value">{{ data.birthDate }}</span>
+                </div>
+              </div>
+
+              <div class="constancia-row">
+                <div class="constancia-field">
+                  <span class="constancia-label">Edad</span>
+                  <span class="constancia-value">{{ data.age !== null ? data.age + ' años' : '-' }}</span>
+                </div>
+                <div class="constancia-field">
+                  <span class="constancia-label">Domicilio</span>
+                  <span class="constancia-value">{{ data.address }}</span>
+                </div>
+              </div>
+
+              <div class="constancia-row">
+                <div class="constancia-field">
+                  <span class="constancia-label">Localidad</span>
+                  <span class="constancia-value">{{ data.locality }}</span>
+                </div>
+                <div class="constancia-field">
+                  <span class="constancia-label">Provincia</span>
+                  <span class="constancia-value">{{ data.province }}</span>
+                </div>
+              </div>
+
+              <div class="constancia-row">
+                <div class="constancia-field">
                   <span class="constancia-label">Teléfono</span>
-                  <span class="constancia-value">{{ inscriptionResult()!.phone }}</span>
+                  <span class="constancia-value">{{ data.phone }}</span>
+                </div>
+                <div class="constancia-field">
+                  <span class="constancia-label">Email</span>
+                  <span class="constancia-value">{{ data.email }}</span>
                 </div>
               </div>
 
@@ -380,13 +824,85 @@ interface InscripcionData {
               <div class="constancia-row">
                 <div class="constancia-field">
                   <span class="constancia-label">Categoría</span>
-                  <span class="constancia-value constancia-category">{{ inscriptionResult()!.category === 'musica' ? 'Música' : 'Danza' }}</span>
+                  <span class="constancia-value constancia-category">{{ data.category === 'musica' ? 'Música' : 'Danza' }}</span>
                 </div>
                 <div class="constancia-field">
                   <span class="constancia-label">Subcategoría</span>
-                  <span class="constancia-value constancia-category">{{ getSubcategoryName(inscriptionResult()!.subcategory) }}</span>
+                  <span class="constancia-value constancia-category">{{ subcategoryName() }}</span>
                 </div>
               </div>
+
+              @if (isGroupType() && data.members.length > 0) {
+                <div class="constancia-divider"></div>
+                <div class="constancia-field">
+                  <span class="constancia-label">Integrantes</span>
+                  @for (member of data.members; track $index; let i = $index) {
+                    <span class="constancia-value">{{ member.fullName }} — {{ member.role }} @if (member.dni) { (DNI: {{ member.dni }}) } @if (member.age) { · {{ member.age }} años }</span>
+                  }
+                </div>
+              }
+
+              <div class="constancia-divider"></div>
+
+              @if (data.category === 'musica') {
+                @if (data.artisticName) {
+                  <div class="constancia-field">
+                    <span class="constancia-label">Nombre Artístico</span>
+                    <span class="constancia-value">{{ data.artisticName }}</span>
+                  </div>
+                }
+                @if (getFilledThemesCount() > 0) {
+                  <div class="constancia-field">
+                    <span class="constancia-label">Temas</span>
+                    @for (theme of data.themes; track $index; let i = $index) {
+                      @if (theme.title || theme.rhythm || theme.author) {
+                        <span class="constancia-value">{{ i + 1 }}. {{ theme.title || '—' }} — {{ theme.rhythm || '—' }} — {{ theme.author || '—' }}</span>
+                      }
+                    }
+                  </div>
+                }
+                @if (data.technicalNeeds) {
+                  <div class="constancia-field">
+                    <span class="constancia-label">Necesidades Técnicas</span>
+                    <span class="constancia-value">{{ data.technicalNeeds }}</span>
+                  </div>
+                }
+              }
+
+              @if (data.category === 'danza') {
+                @if (data.proposalName) {
+                  <div class="constancia-field">
+                    <span class="constancia-label">Nombre de la Propuesta</span>
+                    <span class="constancia-value">{{ data.proposalName }}</span>
+                  </div>
+                }
+                @if (data.choreographerName) {
+                  <div class="constancia-field">
+                    <span class="constancia-label">Coreógrafo</span>
+                    <span class="constancia-value">{{ data.choreographerName }}</span>
+                  </div>
+                }
+                @if (data.style) {
+                  <div class="constancia-field">
+                    <span class="constancia-label">Estilo</span>
+                    <span class="constancia-value">{{ data.style }}</span>
+                  </div>
+                }
+                @if (data.danceList) {
+                  <div class="constancia-field">
+                    <span class="constancia-label">Danzas o Cuadros</span>
+                    <span class="constancia-value">{{ data.danceList }}</span>
+                  </div>
+                }
+              }
+
+              @if (data.biography) {
+                <div class="constancia-divider"></div>
+                <div class="constancia-field">
+                  <span class="constancia-label">Biografía Artística</span>
+                  <span class="constancia-value">{{ data.biography }}</span>
+                </div>
+              }
 
               <div class="constancia-divider"></div>
 
@@ -715,6 +1231,24 @@ interface InscripcionData {
       min-height: 120px;
     }
 
+    .form-input-readonly {
+      opacity: 0.7;
+      cursor: default;
+    }
+
+    select.form-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      padding-right: 2.5rem;
+    }
+
+    select.form-input option {
+      background: #1e293b;
+      color: #e2e8f0;
+    }
+
     .form-row {
       display: grid;
       grid-template-columns: 1fr;
@@ -827,6 +1361,167 @@ interface InscripcionData {
       margin-top: var(--space-2);
     }
 
+    .member-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      margin-bottom: var(--space-4);
+    }
+
+    .member-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+
+    .member-number {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--brand-400);
+      margin: 0;
+    }
+
+    .btn-remove {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: var(--text-xs);
+      color: var(--danger-600);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: var(--weight-medium);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-fast);
+    }
+
+    .btn-remove:hover { background: rgba(239, 68, 68, 0.1); }
+
+    .btn-add-member {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0.625rem 1.25rem;
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      border-radius: var(--radius-lg);
+      border: 2px dashed rgba(99, 102, 241, 0.4);
+      background: rgba(99, 102, 241, 0.05);
+      color: var(--brand-400);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .btn-add-member:hover {
+      border-color: var(--brand-400);
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .themes-table-wrapper {
+      overflow-x: auto;
+      margin-top: var(--space-2);
+    }
+
+    .themes-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-sm);
+    }
+
+    .themes-table th {
+      text-align: left;
+      padding: var(--space-2) var(--space-3);
+      color: #94a3b8;
+      font-weight: var(--weight-medium);
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .themes-table td {
+      padding: var(--space-2) var(--space-3);
+    }
+
+    .theme-number {
+      color: #64748b;
+      font-weight: var(--weight-medium);
+      width: 30px;
+    }
+
+    .table-input {
+      padding: 0.5rem 0.625rem !important;
+      font-size: var(--text-sm) !important;
+    }
+
+    .section-subtitle {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--brand-400);
+      margin: 0 0 var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .file-upload-area {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .file-upload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0.5rem 1rem;
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      color: #e2e8f0;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1.5px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .file-upload-btn:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: var(--brand-400);
+    }
+
+    .file-name-display {
+      font-size: var(--text-sm);
+      color: #64748b;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .review-thumb {
+      width: 120px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: var(--radius-md);
+      border: 2px solid rgba(99, 102, 241, 0.3);
+      margin-top: var(--space-1);
+    }
+
+    .declaration-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .review-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: var(--space-5) 0;
+    }
+
     .review-section {
       margin-bottom: var(--space-5);
     }
@@ -884,6 +1579,12 @@ interface InscripcionData {
       font-size: var(--text-sm);
       font-weight: var(--weight-medium);
       color: #e2e8f0;
+    }
+
+    .review-empty {
+      color: #64748b;
+      font-style: italic;
+      font-weight: normal;
     }
 
     .terms-check {
@@ -1186,7 +1887,7 @@ interface InscripcionData {
     }
   `]
 })
-export class InscripcionPageComponent {
+export class InscripcionPageComponent implements OnDestroy {
   private http = inject(HttpClient);
 
   currentStep = signal(1);
@@ -1194,44 +1895,83 @@ export class InscripcionPageComponent {
   submitting = signal(false);
   error = signal('');
   inscriptionResult = signal<InscripcionResult | null>(null);
-  acceptedTerms = false;
+  filePreviews: Record<string, string> = {};
 
   steps = [
     { number: 1, label: 'Datos' },
-    { number: 2, label: 'Categoría' },
-    { number: 3, label: 'Arte' },
-    { number: 4, label: 'Confirmar' },
-    { number: 5, label: 'Constancia' },
+    { number: 2, label: 'Rubro' },
+    { number: 3, label: 'Integrantes' },
+    { number: 4, label: 'Arte' },
+    { number: 5, label: 'Archivos' },
+    { number: 6, label: 'Confirmar' },
   ];
 
   data: InscripcionData = {
     fullName: '',
-    email: '',
-    phone: '',
     dni: '',
+    birthDate: '',
+    age: null,
+    address: '',
+    locality: '',
+    province: '',
+    phone: '',
+    email: '',
     category: '',
     subcategory: '',
+    members: [],
     artisticName: '',
-    bio: '',
+    themes: [
+      { title: '', rhythm: '', author: '' },
+      { title: '', rhythm: '', author: '' },
+      { title: '', rhythm: '', author: '' },
+      { title: '', rhythm: '', author: '' },
+      { title: '', rhythm: '', author: '' },
+      { title: '', rhythm: '', author: '' },
+    ],
+    technicalNeeds: '',
+    proposalName: '',
+    choreographerName: '',
+    style: '',
+    danceList: '',
+    biography: '',
+    dniFrontFile: null,
+    dniBackFile: null,
+    promoPhotoFile: null,
+    lyricsFile: null,
+    scoreFile: null,
+    dniFrontName: '',
+    dniBackName: '',
+    promoPhotoName: '',
+    lyricsFileName: '',
+    scoreFileName: '',
+    acceptRegulations: false,
+    acceptImageRights: false,
+    acceptDataTruth: false,
   };
 
   private subcategoriesByCategory: Record<string, { id: string; name: string }[]> = {
     musica: [
       { id: 'solista_vocal', name: 'Solista Vocal' },
+      { id: 'duo_vocal', name: 'Dúo Vocal' },
+      { id: 'conjunto_vocal', name: 'Conjunto Vocal' },
       { id: 'solista_instrumental', name: 'Solista Instrumental' },
       { id: 'conjunto_instrumental', name: 'Conjunto Instrumental' },
-      { id: 'conjunto_vocal', name: 'Conjunto Vocal' },
-      { id: 'tema_inedito', name: 'Tema Inédito' },
+      { id: 'cancion_inedita', name: 'Canción Inédita' },
     ],
     danza: [
       { id: 'malambo_masculino', name: 'Solista de Malambo Masculino' },
       { id: 'malambo_femenino', name: 'Solista de Malambo Femenino' },
-      { id: 'pareja_tradicional', name: 'Pareja Tradicional' },
-      { id: 'pareja_estilizada', name: 'Pareja Estilizada' },
       { id: 'conjunto_malambo', name: 'Conjunto de Malambo' },
-      { id: 'conjunto_baile', name: 'Conjunto de Baile Folclórico' },
+      { id: 'pareja_tradicional', name: 'Pareja de Baile Tradicional' },
+      { id: 'pareja_estilizada', name: 'Pareja de Baile Estilizada' },
+      { id: 'conjunto_baile', name: 'Conjunto de Baile Folklórico' },
     ],
   };
+
+  private groupSubcategories = [
+    'duo_vocal', 'conjunto_vocal', 'conjunto_instrumental',
+    'conjunto_malambo', 'pareja_tradicional', 'pareja_estilizada', 'conjunto_baile',
+  ];
 
   subcategories = computed(() => this.subcategoriesByCategory[this.data.category] || []);
 
@@ -1241,34 +1981,121 @@ export class InscripcionPageComponent {
     return found?.name || '';
   });
 
+  isGroupType = computed(() => this.groupSubcategories.includes(this.data.subcategory));
+
+  visibleSteps = computed(() => {
+    if (this.isGroupType()) {
+      return this.steps;
+    }
+    return this.steps.filter(s => s.number !== 3);
+  });
+
   onCategoryChange(): void {
     this.data.subcategory = '';
   }
 
+  onBirthDateChange(): void {
+    this.data.age = this.calculateAge(this.data.birthDate);
+  }
+
+  calculateAge(birthDate: string): number | null {
+    if (!birthDate) return null;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age >= 0 ? age : null;
+  }
+
+  addMember(): void {
+    this.data.members.push({ fullName: '', dni: '', age: null, role: '' });
+  }
+
+  removeMember(index: number): void {
+    this.data.members.splice(index, 1);
+  }
+
+  onFileSelect(event: Event, fieldName: string): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      (this.data as any)[fieldName] = file;
+      const nameMap: Record<string, string> = {
+        dniFrontFile: 'dniFrontName',
+        dniBackFile: 'dniBackName',
+        promoPhotoFile: 'promoPhotoName',
+        lyricsFile: 'lyricsFileName',
+        scoreFile: 'scoreFileName',
+      };
+      (this.data as any)[nameMap[fieldName]] = file.name;
+
+      if (file.type.startsWith('image/')) {
+        if (this.filePreviews[fieldName]) {
+          URL.revokeObjectURL(this.filePreviews[fieldName]);
+        }
+        this.filePreviews[fieldName] = URL.createObjectURL(file);
+      }
+    }
+  }
+
+  ngOnDestroy(): void {
+    Object.values(this.filePreviews).forEach(url => URL.revokeObjectURL(url));
+  }
+
+  getFilledThemesCount(): number {
+    return this.data.themes.filter(t => t.title || t.rhythm || t.author).length;
+  }
+
   canProceed(): boolean {
     switch (this.currentStep()) {
-      case 1: return !!(this.data.fullName && this.data.email && this.data.phone);
-      case 2: return !!(this.data.category && this.data.subcategory);
-      case 3: return true;
-      case 4: return true;
-      default: return false;
+      case 1:
+        return !!(this.data.fullName && this.data.dni && this.data.birthDate &&
+                  this.data.address && this.data.locality && this.data.province &&
+                  this.data.phone && this.data.email);
+      case 2:
+        return !!(this.data.category && this.data.subcategory);
+      case 3:
+        return this.isGroupType() ? this.data.members.length >= 1 : true;
+      case 4:
+        return true;
+      case 5:
+        return true;
+      case 6:
+        return this.data.acceptRegulations && this.data.acceptImageRights && this.data.acceptDataTruth;
+      default:
+        return false;
     }
   }
 
   nextStep(): void {
-    if (this.canProceed() && this.currentStep() < 4) {
-      this.currentStep.update(s => s + 1);
+    if (this.canProceed() && this.currentStep() < 6) {
+      let next = this.currentStep() + 1;
+      if (next === 3 && !this.isGroupType()) {
+        next = 4;
+      }
+      this.currentStep.set(next);
     }
   }
 
   prevStep(): void {
     if (this.currentStep() > 1) {
-      this.currentStep.update(s => s - 1);
+      let prev = this.currentStep() - 1;
+      if (prev === 3 && !this.isGroupType()) {
+        prev = 2;
+      }
+      this.currentStep.set(prev);
     }
   }
 
   goToStep(step: number): void {
-    this.currentStep.set(step);
+    if (step === 3 && !this.isGroupType()) {
+      this.currentStep.set(4);
+    } else {
+      this.currentStep.set(step);
+    }
   }
 
   getSubcategoryName(id: string): string {
@@ -1290,12 +2117,12 @@ export class InscripcionPageComponent {
 
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
-    if (!this.acceptedTerms) return;
+    if (!this.canProceed()) return;
 
     this.submitting.set(true);
     this.error.set('');
 
-    const payload = {
+    const payload: Record<string, any> = {
       full_name: this.data.fullName,
       stage_name: this.data.artisticName || null,
       email: this.data.email,
@@ -1303,20 +2130,79 @@ export class InscripcionPageComponent {
       category: this.data.category,
       subcategory: this.data.subcategory,
       dni: this.data.dni || null,
-      bio: this.data.bio || null,
+      birth_date: this.data.birthDate || null,
+      age: this.data.age,
+      address: this.data.address || null,
+      locality: this.data.locality || null,
+      province: this.data.province || null,
+      bio: this.data.biography || null,
+      technical_needs: this.data.technicalNeeds || null,
+      proposal_name: this.data.proposalName || null,
+      choreographer_name: this.data.choreographerName || null,
+      style: this.data.style || null,
+      dance_list: this.data.danceList || null,
+      themes: this.data.category === 'musica'
+        ? this.data.themes.filter(t => t.title || t.rhythm || t.author)
+        : null,
+      members: this.isGroupType() ? this.data.members : null,
     };
 
-    this.http.post<InscripcionResult>('/api/v1/inscriptions/', payload).subscribe({
+    this.http.post<InscripcionResult>(`${environment.apiUrl}/inscriptions/`, payload).subscribe({
       next: (result) => {
-        this.submitting.set(false);
         this.inscriptionResult.set(result);
-        this.submitted.set(true);
-        this.currentStep.set(5);
+        this.uploadFiles(result.id);
       },
       error: (err) => {
         this.submitting.set(false);
         this.error.set(err.error?.detail || 'Error al enviar la inscripción. Intentá de nuevo.');
       },
     });
+  }
+
+  private uploadFiles(inscriptionId: string): void {
+    const files: { file: File; type: string }[] = [];
+
+    if (this.data.dniFrontFile) files.push({ file: this.data.dniFrontFile, type: 'dni_front' });
+    if (this.data.dniBackFile) files.push({ file: this.data.dniBackFile, type: 'dni_back' });
+    if (this.data.promoPhotoFile) files.push({ file: this.data.promoPhotoFile, type: 'promo_photo' });
+    if (this.data.lyricsFile) files.push({ file: this.data.lyricsFile, type: 'lyrics' });
+    if (this.data.scoreFile) files.push({ file: this.data.scoreFile, type: 'score' });
+
+    if (files.length === 0) {
+      this.submitting.set(false);
+      this.submitted.set(true);
+      this.currentStep.set(7);
+      return;
+    }
+
+    let uploaded = 0;
+    const total = files.length;
+
+    for (const { file, type } of files) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      this.http.post(
+        `${environment.apiUrl}/inscriptions/upload/${inscriptionId}?file_type=${type}`,
+        formData
+      ).subscribe({
+        next: () => {
+          uploaded++;
+          if (uploaded === total) {
+            this.submitting.set(false);
+            this.submitted.set(true);
+            this.currentStep.set(7);
+          }
+        },
+        error: () => {
+          uploaded++;
+          if (uploaded === total) {
+            this.submitting.set(false);
+            this.submitted.set(true);
+            this.currentStep.set(7);
+          }
+        },
+      });
+    }
   }
 }

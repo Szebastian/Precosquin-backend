@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 export interface UserProfile {
   id: string;
@@ -39,7 +40,7 @@ export class AuthService {
   async login(email: string, password: string): Promise<{ error: string | null }> {
     this._loading.set(true);
     try {
-      const data: any = await this.http.post('/api/v1/auth/login', { email, password }).toPromise();
+      const data: any = await this.http.post(`${environment.apiUrl}/auth/login`, { email, password }).toPromise();
       this._session.set(data);
       return { error: null };
     } catch (error: any) {
