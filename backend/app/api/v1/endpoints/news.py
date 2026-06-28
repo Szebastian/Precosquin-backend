@@ -10,7 +10,7 @@ from app.core.deps import require_role, CurrentUser
 router = APIRouter()
 
 # Path to local news JSON file
-NEWS_FILE = Path(__file__).resolve().parent.parent.parent.parent / "news.json"
+NEWS_FILE = Path(__file__).resolve().parent.parent.parent / "news.json"
 
 class NewsItem(BaseModel):
     id: Optional[int] = None
