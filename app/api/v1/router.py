@@ -13,6 +13,7 @@ from app.api.v1.endpoints import (
     dashboard,
     categories,
     storage,
+    news,
 )
 
 api_router = APIRouter()
@@ -55,3 +56,6 @@ api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
 
 # Storage
 api_router.include_router(storage.router, prefix="/storage", tags=["Storage"])
+
+# News
+api_router.include_router(news.router, prefix="/news", tags=["News"])
