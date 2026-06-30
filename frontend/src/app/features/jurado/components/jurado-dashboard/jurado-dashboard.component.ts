@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
+import { InscriptionsService, Inscription } from '@core/services/inscriptions.service';
 
 interface JuradoStats {
   inscriptions_assigned: number;
@@ -31,77 +32,53 @@ interface InscriptionToEvaluate {
 })
 export class JuradoDashboardComponent implements OnInit {
   auth = inject(AuthService);
+  private inscriptionsService = inject(InscriptionsService);
 
   stats = signal<JuradoStats | null>(null);
   pendingInscriptions = signal<InscriptionToEvaluate[]>([]);
+  loading = signal(true);
 
   ngOnInit(): void {
-    this.loadStats();
-    this.loadInscriptions();
+    this.loadData();
   }
 
-  private loadStats(): void {
-    this.stats.set({
-      inscriptions_assigned: 8,
-      pending_evaluations: 5,
-      completed_evaluations: 3,
-      average_score: 7.5
-    });
-  }
+  private loadData(): void {
+    this.loading.set(true);
+    this.inscriptionsService.getInscriptions({ page_size: 100 }).subscribe({
+      next: (res) => {
+        const all = res.data;
+        const total = all.length;
+        const pending = all.filter(i => i.status === 'PENDIENTE' || i.status === 'EN_REVISION').length;
+        const completed = all.filter(i => i.status === 'APROBADA' || i.status === 'RECHAZADA').length;
 
-  private loadInscriptions(): void {
-    this.pendingInscriptions.set([
-      {
-        id: '1',
-        artist_name: 'Carlos Méndez',
-        stage_name: 'El Trovero',
-        category: 'Música',
-        subcategory: 'Solista Vocal',
-        status: 'pending',
-        submitted_at: '2026-06-20T10:00:00Z',
-        evaluation_status: 'pending'
+        this.stats.set({
+          inscriptions_assigned: total,
+          pending_evaluations: pending,
+          completed_evaluations: completed,
+          average_score: 0
+        });
+
+        this.pendingInscriptions.set(
+          all
+            .filter(i => i.status === 'PENDIENTE' || i.status === 'EN_REVISION')
+            .slice(0, 10)
+            .map(i => ({
+              id: i.id,
+              artist_name: i.full_name,
+              stage_name: i.stage_name || '',
+              category: i.category,
+              subcategory: i.subcategory,
+              status: i.status,
+              submitted_at: i.created_at,
+              evaluation_status: 'pending' as const
+            }))
+        );
+        this.loading.set(false);
       },
-      {
-        id: '2',
-        artist_name: 'María García',
-        stage_name: 'María del Sur',
-        category: 'Danza',
-        subcategory: 'Pareja Tradicional',
-        status: 'pending',
-        submitted_at: '2026-06-19T14:30:00Z',
-        evaluation_status: 'in_progress'
-      },
-      {
-        id: '3',
-        artist_name: 'Los Hermanos Rodríguez',
-        stage_name: '',
-        category: 'Música',
-        subcategory: 'Conjunto Folklórico',
-        status: 'pending',
-        submitted_at: '2026-06-18T09:15:00Z',
-        evaluation_status: 'pending'
-      },
-      {
-        id: '4',
-        artist_name: 'Ana Lucía Paredes',
-        stage_name: 'Anita la Voz del Malvinas',
-        category: 'Música',
-        subcategory: 'Solista Instrumental',
-        status: 'pending',
-        submitted_at: '2026-06-17T16:45:00Z',
-        evaluation_status: 'pending'
-      },
-      {
-        id: '5',
-        artist_name: 'Grupo Raíces',
-        stage_name: '',
-        category: 'Danza',
-        subcategory: 'Grupo Danzas',
-        status: 'pending',
-        submitted_at: '2026-06-16T11:20:00Z',
-        evaluation_status: 'pending'
+      error: () => {
+        this.loading.set(false);
       }
-    ]);
+    });
   }
 
   getInitials(name: string): string {

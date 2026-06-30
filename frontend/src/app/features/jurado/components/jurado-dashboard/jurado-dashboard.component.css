@@ -45,8 +45,8 @@
 }
 
 :host-context(.dark) .welcome-title {
-  color: var(--gray-100);
-}
+      color: white;
+    }
 
 .welcome-subtitle {
   font-size: 0.9375rem;
@@ -56,8 +56,8 @@
 }
 
 :host-context(.dark) .welcome-subtitle {
-  color: var(--gray-400);
-}
+      color: white;
+    }
 
 .welcome-actions {
   display: flex;
@@ -78,7 +78,11 @@
   text-decoration: none;
   transition: all 0.2s ease;
   white-space: nowrap;
-}
+  }
+
+  :host-context(.dark) .inscription-meta {
+      color: white;
+    }
 
 .btn-sm {
   padding: 0.55rem 1rem;
@@ -141,9 +145,9 @@
 }
 
 :host-context(.dark) .stat-card {
-  background: #1e293b;
-  border-color: #334155;
-}
+      background: var(--gray-850); /* Un color ligeramente más claro para destacar */
+      border-color: #334155;
+    }
 
 .stat-card:hover {
   transform: translateY(-3px);
@@ -188,7 +192,7 @@
   transition: color 0.3s ease;
 }
 
-:host-context(.dark) .stat-value { color: var(--gray-100); }
+:host-context(.dark) .stat-value { color: white; }
 
 .stat-label {
   font-size: 0.875rem;
@@ -197,7 +201,7 @@
   font-weight: 500;
 }
 
-:host-context(.dark) .stat-label { color: var(--gray-400); }
+:host-context(.dark) .stat-label { color: white; }
 
 .stat-footer {
   padding-top: 0.875rem;
@@ -216,10 +220,10 @@
 }
 
 .stat-info {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--gray-400);
-}
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: white; /* Ajustado para mejor contraste en modo oscuro */
+    }
 
 .stat-link {
   font-size: 0.875rem;
@@ -263,7 +267,7 @@
   font-weight: 500;
 }
 
-:host-context(.dark) .progress-labels { color: var(--gray-400); }
+:host-context(.dark) .progress-labels { color: white; }
 
 .progress-badge {
   display: inline-block;
@@ -292,9 +296,9 @@
 }
 
 :host-context(.dark) .card {
-  background: #1e293b;
-  border-color: #334155;
-}
+      background: var(--gray-850); /* Un color ligeramente más claro para destacar */
+      border-color: #334155;
+    }
 
 .card-elevated {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
@@ -317,7 +321,7 @@
   margin: 0;
 }
 
-:host-context(.dark) .card-title { color: var(--gray-100); }
+:host-context(.dark) .card-title { color: white; }
 
 .card-description {
   font-size: 0.8125rem;
@@ -325,7 +329,7 @@
   margin: 0.2rem 0 0 0;
 }
 
-:host-context(.dark) .card-description { color: var(--gray-400); }
+:host-context(.dark) .card-description { color: white; }
 
 /* Inscription List */
 .inscription-list {
@@ -393,16 +397,18 @@
 .inscription-info { flex: 1; min-width: 0; }
 
 .inscription-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--gray-900);
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-:host-context(.dark) .inscription-name { color: var(--gray-100); }
+    :host-context(.dark) .inscription-name {
+      color: white;
+    }
 
 .inscription-meta {
   display: flex;

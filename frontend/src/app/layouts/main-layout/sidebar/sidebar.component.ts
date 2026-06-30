@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
@@ -12,7 +13,7 @@ import { AuthService } from '@core/auth/auth.service';
       <!-- Brand -->
       <div class="sidebar-brand">
         <div class="brand-logo">
-          <img src="assets/logo.svg" alt="Precosquin" class="logo-img">
+          <img src="assets/logoballena.png" alt="Precosquin" class="logo-img">
         </div>
         <span class="brand-name">Precosquin</span>
       </div>
@@ -25,7 +26,7 @@ import { AuthService } from '@core/auth/auth.service';
             routerLinkActive="active"
             class="nav-item"
           >
-            <span class="nav-icon" [innerHTML]="item.icon"></span>
+            <span class="nav-icon" [innerHTML]="sanitizeIcon(item.icon)"></span>
             <span class="nav-label">{{ item.label }}</span>
             @if (item.badge) {
               <span class="nav-badge">{{ item.badge }}</span>
@@ -36,13 +37,18 @@ import { AuthService } from '@core/auth/auth.service';
 
       <!-- User Section -->
       <div class="sidebar-footer">
-        <div class="sidebar-user">
+        <div class="sidebar-user" [class.jurado-user]="auth.isJurado()">
           <div class="user-avatar">
             <span class="avatar-text">{{ initials() }}</span>
           </div>
           <div class="user-info">
             <p class="user-name">{{ auth.profile()?.full_name || 'Usuario' }}</p>
-            <p class="user-role">{{ auth.profile()?.role || 'staff' }}</p>
+            <p class="user-role" [class.jurado-role-badge]="auth.isJurado()">
+              @if (auth.isJurado()) {
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="jurado-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              }
+              {{ auth.profile()?.role || 'staff' }}
+            </p>
           </div>
         </div>
       </div>
@@ -265,11 +271,47 @@ import { AuthService } from '@core/auth/auth.service';
       text-transform: capitalize;
       margin: 0.125rem 0 0 0;
       line-height: 1.2;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .jurado-user {
+      background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 167, 38, 0.15));
+      border-color: rgba(255, 193, 7, 0.3);
+    }
+
+    .jurado-user:hover {
+      background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 167, 38, 0.2));
+      border-color: rgba(255, 193, 7, 0.4);
+    }
+
+    .jurado-role-badge {
+      font-weight: 700;
+      color: #ffc107; /* Color dorado/amarillo para jurado */
+      background-color: rgba(255, 193, 7, 0.1);
+      padding: 0.2em 0.5em;
+      border-radius: 0.5em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25em;
+      line-height: 1;
+    }
+
+    .jurado-role-badge .jurado-icon {
+      color: #ffc107;
+      width: 0.9em;
+      height: 0.9em;
     }
   `]
 })
 export class SidebarComponent {
   auth = inject(AuthService);
+  private sanitizer = inject(DomSanitizer);
+
+  sanitizeIcon(icon: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(icon);
+  }
 
   navItems = [
     { label: 'Dashboard', route: '/panel/dashboard', roles: ['organizador', 'admin', 'staff', 'jurado'], badge: '', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>' },

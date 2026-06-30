@@ -30,7 +30,7 @@ import { ToastService } from '@shared/components/toast/toast.service';
           </button>
           <a routerLink="/dashboard" class="header-brand">
             <div class="brand-icon">
-              <img src="assets/logo.svg" alt="Precosquin Logo" class="h-full w-full object-contain" />
+              <img src="assets/logoballena.png" alt="Precosquin Logo" class="h-full w-full object-contain" />
             </div>
             <span class="brand-text">Precosquin</span>
           </a>
@@ -121,7 +121,7 @@ import { ToastService } from '@shared/components/toast/toast.service';
                 <div class="dropdown-header">
                   <p class="font-semibold">{{ auth.profile()?.full_name }}</p>
                   <p class="text-xs text-muted">{{ auth.profile()?.email }}</p>
-                  <span class="badge badge-brand mt-1">{{ auth.profile()?.role }}</span>
+                  <span class="badge badge-brand mt-1" [class.jurado-header-role]="auth.isJurado()">{{ auth.profile()?.role }}</span>
                 </div>
                 <div class="dropdown-divider"></div>
                 <a routerLink="/settings" class="dropdown-item">Configuracion</a>
@@ -348,6 +348,16 @@ import { ToastService } from '@shared/components/toast/toast.service';
 
     .dropdown-item.text-danger {
       color: var(--danger-600);
+    }
+
+    .jurado-header-role {
+      background-color: rgba(255, 193, 7, 0.15);
+      color: #ffc107;
+      font-weight: 700;
+      padding: 0.2em 0.5em;
+      border-radius: 0.5em;
+      line-height: 1;
+      display: inline-block;
     }
 
     .notification-item {

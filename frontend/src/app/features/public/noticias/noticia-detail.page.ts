@@ -310,8 +310,11 @@ interface NewsItem {
     .detail-hero {
       position: relative;
       min-height: 500px;
+      height: auto;
+      aspect-ratio: 2110 / 500;
       background-size: cover;
-      background-position: center;
+      background-position: 50% 20%; /* Move image down to show more content */
+      background-repeat: no-repeat;
       background-color: #1e293b;
       display: flex;
       flex-direction: column;

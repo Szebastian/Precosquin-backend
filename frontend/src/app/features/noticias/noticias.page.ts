@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 interface NewsItem {
   id?: number;
@@ -83,7 +84,7 @@ interface NewsItem {
                     @if (item.thumbType === 'img') {
                       <img [src]="item.thumbSrc" alt="thumbnail" />
                     } @else {
-                      <span [innerHTML]="item.thumbSrc"></span>
+                      <span [innerHTML]="sanitizeHtml(item.thumbSrc)"></span>
                     }
                   </div>
                   <button class="btn-icon btn-danger" title="Eliminar noticia" (click)="deleteNews(item.id!)">
@@ -1550,6 +1551,7 @@ interface NewsItem {
 })
 export class NoticiasPageComponent implements OnInit, AfterViewInit {
   private http = inject(HttpClient);
+  private sanitizer = inject(DomSanitizer);
   @ViewChild('categoryInput') categoryInput!: ElementRef<HTMLInputElement>;
 
   newsList = signal<NewsItem[]>([]);
@@ -1589,6 +1591,10 @@ export class NoticiasPageComponent implements OnInit, AfterViewInit {
     { name: 'Música', svg: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' },
     { name: 'Estrella', svg: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' },
   ];
+
+  sanitizeHtml(html: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
 
   focalPositions = [
     { value: 'top left', label: 'Arriba Izquierda' },

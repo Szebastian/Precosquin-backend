@@ -39,18 +39,10 @@ interface RiderTecnico {
     cables: string[];
     backline: string[];
   };
-  iluminacion: string;
   escenario: {
     metrosLineales: number | null;
     fondoEscenario: string;
     pisos: string[];
-  };
-  backstage: {
-    vestuario: boolean;
-    camarines: number | null;
-    hospedaje: boolean;
-    viaticos: boolean;
-    observaciones: string;
   };
   otros: string;
 }
@@ -121,23 +113,25 @@ interface InscripcionData {
                 <div class="progress-bar-fill" [style.width.%]="getProgressPercentage()"></div>
                 <span class="progress-bar-text">{{ getProgressPercentage() }}% completado</span>
               </div>
-              @for (step of visibleSteps(); track step.number; let i = $index) {
-                <div class="step" [class.active]="currentStep() === step.number" [class.completed]="currentStep() > step.number">
-                  <div class="step-circle">
-                    @if (currentStep() > step.number) {
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 6 9 17l-5-5"/>
-                      </svg>
-                    } @else {
-                      {{ step.number }}
-                    }
+              <div class="steps-row">
+                @for (step of visibleSteps(); track step.number; let i = $index) {
+                  <div class="step" [class.active]="currentStep() === step.number" [class.completed]="currentStep() > step.number">
+                    <div class="step-circle">
+                      @if (currentStep() > step.number) {
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 6 9 17l-5-5"/>
+                        </svg>
+                      } @else {
+                        {{ step.number }}
+                      }
+                    </div>
+                    <span class="step-label">{{ step.label }}</span>
                   </div>
-                  <span class="step-label">{{ step.label }}</span>
-                </div>
-                @if (i < visibleSteps().length - 1) {
-                  <div class="step-line" [class.completed]="currentStep() > step.number"></div>
+                  @if (i < visibleSteps().length - 1) {
+                    <div class="step-line" [class.completed]="currentStep() > step.number"></div>
+                  }
                 }
-              }
+              </div>
             </div>
 
             <form (submit)="onSubmit($event)" class="inscription-form">
@@ -373,13 +367,6 @@ interface InscripcionData {
                       </table>
                     </div>
                   </div>
-
-                  <div class="form-group">
-                    <label class="form-label" for="technicalNeeds">Necesidades técnicas / Planta de sonido</label>
-                    <textarea id="technicalNeeds" name="technicalNeeds" class="form-textarea" rows="4"
-                      [(ngModel)]="data.technicalNeeds"
-                      placeholder="Describí los instrumentos, equipamiento o condiciones técnicas necesarias para tu presentación..."></textarea>
-                  </div>
                 }
 
                 @if (data.category === 'danza') {
@@ -477,89 +464,6 @@ interface InscripcionData {
                     <input type="text" id="cables" class="form-input" [(ngModel)]="cablesInput" name="cables"
                       placeholder="Ej: cable XLR 10m, jack 1/4, adaptador mini-jack" />
                     <span class="form-hint">Separá múltiples ítems con coma</span>
-                  </div>
-                </div>
-
-                <!-- ILUMINACIÓN -->
-                <div class="rider-section">
-                  <div class="rider-section-header">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                    <h3>Iluminación</h3>
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label" for="iluminacion">Necesidades de iluminación</label>
-                    <textarea id="iluminacion" class="form-textarea" rows="3"
-                      [(ngModel)]="data.riderTecnico.iluminacion" name="iluminacion"
-                      placeholder="Describí necesidades especiales de iluminación (colores, efectos, velo, etc.)"></textarea>
-                    <span class="form-hint">Si no tenés necesidades especiales, dejalo vacío</span>
-                  </div>
-                </div>
-
-                <!-- ESCENARIO -->
-                <div class="rider-section">
-                  <div class="rider-section-header">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
-                    <h3>Escenario</h3>
-                  </div>
-
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label class="form-label">Metros lineales de escenario</label>
-                      <input type="number" class="form-input" [(ngModel)]="data.riderTecnico.escenario.metrosLineales" name="metrosLineales" placeholder="Ej: 8" min="1" max="30" />
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label">Fondo de escenario</label>
-                      <select class="form-input" [(ngModel)]="data.riderTecnico.escenario.fondoEscenario" name="fondoEscenario">
-                        <option value="">Sin preferencia</option>
-                        <option value="negro">Negro</option>
-                        <option value="blanco">Blanco</option>
-                        <option value="azul">Azul</option>
-                        <option value="proyeccion">Con proyección</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label">Tipo de piso</label>
-                    <div class="rider-chips">
-                      @for (piso of pisoOptions; track piso) {
-                        <label class="rider-chip" [class.selected]="data.riderTecnico.escenario.pisos.includes(piso)">
-                          <input type="checkbox" [checked]="data.riderTecnico.escenario.pisos.includes(piso)" (change)="togglePiso(piso)" />
-                          {{ piso }}
-                        </label>
-                      }
-                    </div>
-                  </div>
-                </div>
-
-                <!-- BACKSTAGE -->
-                <div class="rider-section">
-                  <div class="rider-section-header">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    <h3>Backstage y Logística</h3>
-                  </div>
-
-                  <div class="rider-checks">
-                    <label class="checkbox-label">
-                      <input type="checkbox" [(ngModel)]="data.riderTecnico.backstage.vestuario" name="vestuario" />
-                      <span>Requiere vestuario / camerino</span>
-                    </label>
-                    <label class="checkbox-label">
-                      <input type="checkbox" [(ngModel)]="data.riderTecnico.backstage.hospedaje" name="hospedaje" />
-                      <span>Requiere hospedaje</span>
-                    </label>
-                    <label class="checkbox-label">
-                      <input type="checkbox" [(ngModel)]="data.riderTecnico.backstage.viaticos" name="viaticos" />
-                      <span>Requiere viáticos</span>
-                    </label>
-                  </div>
-
-                  <div class="form-group" style="margin-top: var(--space-4);">
-                    <label class="form-label" for="backstageObs">Observaciones del backstage</label>
-                    <textarea id="backstageObs" class="form-textarea" rows="3"
-                      [(ngModel)]="data.riderTecnico.backstage.observaciones" name="backstageObs"
-                      placeholder="Cualquier necesidad adicional: cantidad de camarines, accesibilidad, alimentación, etc."></textarea>
                   </div>
                 </div>
 
@@ -822,12 +726,6 @@ interface InscripcionData {
                         <span class="review-label">Temas</span>
                         <span class="review-value">{{ getFilledThemesCount() }} de 6 temas ingresados</span>
                       </div>
-                      @if (data.technicalNeeds) {
-                        <div class="review-item full-width">
-                          <span class="review-label">Necesidades Técnicas</span>
-                          <span class="review-value">{{ data.technicalNeeds }}</span>
-                        </div>
-                      }
                     }
                     @if (data.category === 'danza') {
                       <div class="review-item">
@@ -882,34 +780,6 @@ interface InscripcionData {
                       <div class="review-item full-width">
                         <span class="review-label">Backline</span>
                         <span class="review-value">{{ data.riderTecnico.sonido.backline.join(', ') }}</span>
-                      </div>
-                    }
-                    @if (data.riderTecnico.iluminacion) {
-                      <div class="review-item full-width">
-                        <span class="review-label">Iluminación</span>
-                        <span class="review-value">{{ data.riderTecnico.iluminacion }}</span>
-                      </div>
-                    }
-                    @if (data.riderTecnico.escenario.metrosLineales) {
-                      <div class="review-item">
-                        <span class="review-label">Metros Lineales</span>
-                        <span class="review-value">{{ data.riderTecnico.escenario.metrosLineales }}m</span>
-                      </div>
-                    }
-                    @if (data.riderTecnico.escenario.fondoEscenario) {
-                      <div class="review-item">
-                        <span class="review-label">Fondo Escenario</span>
-                        <span class="review-value">{{ data.riderTecnico.escenario.fondoEscenario }}</span>
-                      </div>
-                    }
-                    @if (data.riderTecnico.backstage.vestuario || data.riderTecnico.backstage.hospedaje || data.riderTecnico.backstage.viaticos) {
-                      <div class="review-item full-width">
-                        <span class="review-label">Backstage</span>
-                        <span class="review-value">
-                          @if (data.riderTecnico.backstage.vestuario) { Vestuario }
-                          @if (data.riderTecnico.backstage.hospedaje) { · Hospedaje }
-                          @if (data.riderTecnico.backstage.viaticos) { · Viáticos }
-                        </span>
                       </div>
                     }
                     @if (!hasRiderData()) {
@@ -1176,13 +1046,7 @@ interface InscripcionData {
                       }
                     }
                   </div>
-                }
-                @if (data.technicalNeeds) {
-                  <div class="constancia-field">
-                    <span class="constancia-label">Necesidades Técnicas</span>
-                    <span class="constancia-value">{{ data.technicalNeeds }}</span>
-                  </div>
-                }
+                    }
               }
 
               @if (data.category === 'danza') {
@@ -1235,15 +1099,6 @@ interface InscripcionData {
                   }
                   @if (data.riderTecnico.sonido.backline.length > 0) {
                     <span class="constancia-value">Backline: {{ data.riderTecnico.sonido.backline.join(', ') }}</span>
-                  }
-                  @if (data.riderTecnico.iluminacion) {
-                    <span class="constancia-value">Iluminación: {{ data.riderTecnico.iluminacion }}</span>
-                  }
-                  @if (data.riderTecnico.escenario.metrosLineales) {
-                    <span class="constancia-value">Escenario: {{ data.riderTecnico.escenario.metrosLineales }}m</span>
-                  }
-                  @if (data.riderTecnico.backstage.vestuario || data.riderTecnico.backstage.hospedaje || data.riderTecnico.backstage.viaticos) {
-                    <span class="constancia-value">Backstage: @if (data.riderTecnico.backstage.vestuario) { Vestuario } @if (data.riderTecnico.backstage.hospedaje) { · Hospedaje } @if (data.riderTecnico.backstage.viaticos) { · Viáticos }</span>
                   }
                   @if (data.riderTecnico.otros) {
                     <span class="constancia-value">Otros: {{ data.riderTecnico.otros }}</span>
@@ -1454,7 +1309,16 @@ interface InscripcionData {
       flex-direction: column;
       align-items: center;
       padding: var(--space-3) var(--space-8) var(--space-6);
-      gap: var(--space-3);
+      gap: var(--space-4);
+    }
+
+    .steps-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: nowrap;
+      width: 100%;
+      gap: 0;
     }
 
     .progress-bar-wrapper {
@@ -1490,8 +1354,10 @@ interface InscripcionData {
 
     .step {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: var(--space-2);
+      gap: var(--space-1);
+      flex-shrink: 0;
     }
 
     .step-circle {
@@ -1531,11 +1397,12 @@ interface InscripcionData {
     .step.completed .step-label { color: var(--success-400); }
 
     .step-line {
-      width: 36px;
+      flex: 1;
       height: 2px;
+      min-width: 20px;
+      max-width: 60px;
       background: rgba(255, 255, 255, 0.1);
-      margin: 0 var(--space-2);
-      flex-shrink: 0;
+      flex-shrink: 1;
       transition: background var(--transition-base);
     }
 
@@ -1543,9 +1410,9 @@ interface InscripcionData {
 
     @media (max-width: 640px) {
       .step-label { display: none; }
-      .step-line { width: 20px; }
+      .step-line { min-width: 12px; max-width: 30px; }
       .form-header { padding: var(--space-8) var(--space-6) var(--space-4); }
-      .steps-indicator { padding: var(--space-3) var(--space-6) var(--space-5); }
+      .steps-indicator { padding: var(--space-3) var(--space-4) var(--space-5); }
     }
 
     .inscription-form {
@@ -2541,18 +2408,10 @@ export class InscripcionPageComponent implements OnInit, OnDestroy {
         cables: [],
         backline: [],
       },
-      iluminacion: '',
       escenario: {
         metrosLineales: null,
         fondoEscenario: '',
         pisos: [],
-      },
-      backstage: {
-        vestuario: false,
-        camarines: null,
-        hospedaje: false,
-        viaticos: false,
-        observaciones: '',
       },
       otros: '',
     },
@@ -2675,11 +2534,9 @@ export class InscripcionPageComponent implements OnInit, OnDestroy {
         { title: '', rhythm: '', author: '' },
       ],
       technicalNeeds: '',
-      riderTecnico: {
+        riderTecnico: {
         sonido: { microfonos: [], monitores: '', consola: '', diBoxes: null, cables: [], backline: [] },
-        iluminacion: '',
         escenario: { metrosLineales: null, fondoEscenario: '', pisos: [] },
-        backstage: { vestuario: false, camarines: null, hospedaje: false, viaticos: false, observaciones: '' },
         otros: '',
       },
       proposalName: '', choreographerName: '', style: '', danceList: '', biography: '',
@@ -2737,12 +2594,6 @@ export class InscripcionPageComponent implements OnInit, OnDestroy {
       r.sonido.monitores ||
       r.sonido.diBoxes ||
       r.sonido.backline.length > 0 ||
-      r.iluminacion ||
-      r.escenario.metrosLineales ||
-      r.escenario.fondoEscenario ||
-      r.backstage.vestuario ||
-      r.backstage.hospedaje ||
-      r.backstage.viaticos ||
       r.otros
     );
   }
@@ -2977,7 +2828,6 @@ export class InscripcionPageComponent implements OnInit, OnDestroy {
       locality: this.data.locality || null,
       province: this.data.province || null,
       bio: this.data.biography || null,
-      technical_needs: this.data.technicalNeeds || null,
       rider_tecnico: this.hasRiderData() ? this.data.riderTecnico : null,
       proposal_name: this.data.proposalName || null,
       choreographer_name: this.data.choreographerName || null,

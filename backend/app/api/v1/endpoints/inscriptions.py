@@ -1,3 +1,4 @@
+import structlog
 from fastapi import APIRouter, HTTPException, status, Query, Depends, UploadFile, File, Form
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
@@ -6,6 +7,8 @@ import uuid
 
 from app.core.deps import get_current_user, require_role, CurrentUser
 from app.db.session import get_supabase
+
+logger = structlog.get_logger(__name__)
 
 router = APIRouter()
 
@@ -169,43 +172,73 @@ async def update_inscription_status(
     inscription_id: str,
     new_status: str,
     reason: Optional[str] = None,
-    current_user: CurrentUser = Depends(require_role("organizador", "admin")),
+    current_user: CurrentUser = Depends(require_role("organizador", "admin", "jurado")),
 ):
     valid_statuses = ["PENDIENTE", "EN_REVISION", "APROBADA", "RECHAZADA", "CONTRATO_FIRMADO"]
     if new_status not in valid_statuses:
+        logger.warning("Invalid status update attempt", inscription_id=inscription_id, new_status=new_status, user_id=current_user.id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Estado inválido. Debe ser uno de: {', '.join(valid_statuses)}",
         )
 
-    db = get_supabase()
+    try:
+        db = get_supabase()
+    except RuntimeError as e:
+        logger.error("Supabase client not initialized", error=str(e), inscription_id=inscription_id, user_id=current_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Base de datos no disponible: {str(e)}",
+        )
 
-    update_data = {
-        "status": new_status,
-        "updated_at": "now()",
-        "updated_by": current_user.id,
-    }
+    try:
+        existing = db.table("inscriptions").select("id, status").eq("id", inscription_id).execute()
+    except Exception as e:
+        logger.error("Error fetching inscription for status update", inscription_id=inscription_id, error=str(e), user_id=current_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al obtener la inscripción: {str(e)}",
+        )
 
-    if reason:
-        update_data["rejection_reason"] = reason
-
-    result = db.table("inscriptions").update(update_data).eq("id", inscription_id).execute()
-
-    if not result.data:
+    if not existing.data:
+        logger.warning("Inscription not found for status update", inscription_id=inscription_id, user_id=current_user.id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Inscripción no encontrada",
         )
 
-    db.table("inscription_audit").insert({
-        "inscription_id": inscription_id,
-        "action": f"status_changed_to_{new_status}",
-        "from_status": result.data[0].get("status"),
-        "to_status": new_status,
-        "reason": reason,
-        "user_id": current_user.id,
-    }).execute()
+    from_status = existing.data[0].get("status")
 
+    update_data = {
+        "status": new_status,
+    }
+
+    if reason:
+        update_data["rejection_reason"] = reason
+
+    try:
+        result = db.table("inscriptions").update(update_data).eq("id", inscription_id).execute()
+    except Exception as e:
+        logger.error("Error updating inscription status", inscription_id=inscription_id, new_status=new_status, error=str(e), user_id=current_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al actualizar el estado de la inscripción: {str(e)}",
+        )
+
+    logger.info("Inscription update result", inscription_id=inscription_id, result_data=result.data if hasattr(result, 'data') else "no data attr")
+
+    try:
+        db.table("inscription_audit").insert({
+            "inscription_id": inscription_id,
+            "action": f"status_changed_to_{new_status}",
+            "from_status": from_status,
+            "to_status": new_status,
+            "reason": reason,
+        }).execute()
+    except Exception as e:
+        logger.warning("Audit log failed (non-blocking)", inscription_id=inscription_id, error=str(e))
+
+    logger.info("Inscription status updated successfully", inscription_id=inscription_id, from_status=from_status, to_status=new_status, user_id=current_user.id)
     return {"message": f"Inscripción actualizada a {new_status}"}
 
 
@@ -215,11 +248,22 @@ async def upload_inscription_file(
     file_type: str = Query(..., description="dni_front, dni_back, promo_photo, lyrics, score"),
     file: UploadFile = File(...),
 ):
-    db = get_supabase()
+    try:
+        db = get_supabase()
+    except RuntimeError as e:
+        logger.error("Supabase client not initialized", error=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Base de datos no disponible: {str(e)}",
+        )
 
-    existing = db.table("inscriptions").select("id").eq("id", inscription_id).single().execute()
-    if not existing.data:
-        raise HTTPException(status_code=404, detail="Inscripción no encontrada")
+    try:
+        existing = db.table("inscriptions").select("id").eq("id", inscription_id).single().execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Inscripción no encontrada")
+    except Exception as e:
+        logger.error("Error checking inscription existence", error=str(e), inscription_id=inscription_id)
+        raise HTTPException(status_code=500, detail=f"Error al consultar inscripción: {str(e)}")
 
     allowed_types = {
         "dni_front": ["image/jpeg", "image/png"],
@@ -238,13 +282,23 @@ async def upload_inscription_file(
     ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "bin"
     path = f"inscriptions/{inscription_id}/{file_type}.{ext}"
 
-    content = await file.read()
+    try:
+        content = await file.read()
+        logger.info("Read file content successfully", size_bytes=len(content), file_type=file_type, filename=file.filename)
+    except Exception as e:
+        logger.error("Error reading uploaded file", error=str(e), file_type=file_type, filename=file.filename)
+        raise HTTPException(status_code=500, detail=f"Error al leer el archivo: {str(e)}")
 
     try:
-        db.storage.from_("inscriptions").upload(path, content, {
-            "content-type": file.content_type,
-        })
+        logger.info("Attempting to upload to Supabase Storage", path=path, content_type=file.content_type)
+        db.storage.from_("inscriptions").upload(
+            path,
+            content,
+            file_options={"content-type": file.content_type},
+        )
+        logger.info("File uploaded successfully", path=path)
     except Exception as e:
+        logger.error("Error uploading file to Supabase Storage", error=str(e), path=path, file_type=file_type)
         raise HTTPException(status_code=500, detail=f"Error al subir archivo: {str(e)}")
 
     column_map = {
@@ -255,6 +309,12 @@ async def upload_inscription_file(
         "score": "score_url",
     }
 
-    db.table("inscriptions").update({column_map[file_type]: path}).eq("id", inscription_id).execute()
+    try:
+        logger.info("Updating inscriptions table", inscription_id=inscription_id, column=column_map[file_type], path=path)
+        db.table("inscriptions").update({column_map[file_type]: path}).eq("id", inscription_id).execute()
+        logger.info("Database update successful")
+    except Exception as e:
+        logger.error("Error updating inscription record with file path", error=str(e), inscription_id=inscription_id, column=column_map[file_type])
+        raise HTTPException(status_code=500, detail=f"Error al actualizar la inscripción: {str(e)}")
 
     return {"path": path, "message": "Archivo subido correctamente"}

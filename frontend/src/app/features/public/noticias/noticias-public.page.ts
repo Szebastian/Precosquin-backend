@@ -353,6 +353,7 @@ interface NewsItem {
       min-height: 380px;
       background-size: cover;
       background-position: center;
+      background-repeat: no-repeat;
       position: relative;
     }
 
@@ -444,6 +445,7 @@ interface NewsItem {
       height: 200px;
       background-size: cover;
       background-position: center;
+      background-repeat: no-repeat;
       position: relative;
     }
 

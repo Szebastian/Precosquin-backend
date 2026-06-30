@@ -24,7 +24,7 @@ async def upload_file(
     content = await file.read()
 
     db = get_supabase()
-    result = db.storage.from_(bucket).upload(path, content, {"content-type": file.content_type})
+    result = db.storage.from_(bucket).upload(path, content, file_options={"content-type": file.content_type})
 
     return {"path": f"{bucket}/{path}", "message": "Archivo subido correctamente"}
 

@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 _env_path = Path(__file__).resolve().parent.parent.parent / ".env"
 load_dotenv(_env_path, override=True)
 
+import structlog
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
@@ -14,6 +15,8 @@ from pydantic import BaseModel
 import httpx
 
 from app.db.session import get_supabase
+
+logger = structlog.get_logger(__name__)
 
 
 security = HTTPBearer()
@@ -128,13 +131,19 @@ async def get_current_user(
             )
     except HTTPException:
         raise
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("Error fetching user profile from Supabase", exc_info=e, sub=payload.sub)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error interno del servidor al obtener el perfil del usuario: {str(e)}",
+        )
 
+    # Fallback if profile not found or other issues, return basic CurrentUser
+    logger.warning("User profile not found in Supabase or profile is inactive, returning default CurrentUser", sub=payload.sub, email=payload.email)
     return CurrentUser(
         id=payload.sub,
         email=payload.email,
-        role="admin",
+        role="admin",  # Default to admin if profile not found or inactive, this might need adjustment based on business logic
         permissions=[],
     )
 

@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NgStyle, NgClass } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 interface NewsItem {
   id: number;
@@ -117,7 +118,7 @@ interface NewsItem {
                   @if (item.thumbType === 'img') {
                     <img [src]="item.thumbSrc" [alt]="item.title" />
                   } @else {
-                    <span [innerHTML]="item.thumbSrc"></span>
+                    <span [innerHTML]="sanitizeHtml(item.thumbSrc)"></span>
                   }
                 </div>
               </a>
@@ -535,7 +536,8 @@ interface NewsItem {
       border-radius: var(--radius-xl);
       overflow: hidden;
       background-size: cover;
-      background-position: center;
+      background-position: 50% 20%;
+      background-repeat: no-repeat;
       display: flex;
       align-items: flex-end;
       padding: var(--space-8);
@@ -544,6 +546,10 @@ interface NewsItem {
       cursor: pointer;
       text-decoration: none;
       color: inherit;
+      min-height: 500px;
+      height: auto;
+      aspect-ratio: 2110 / 500;
+      width: 100%;
     }
 
     .featured-news:hover {
@@ -1366,6 +1372,7 @@ interface NewsItem {
 export class HomePageComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private http = inject(HttpClient);
+  private sanitizer = inject(DomSanitizer);
 
   currentYear = new Date().getFullYear();
   scrollY = signal(0);
@@ -1419,6 +1426,10 @@ export class HomePageComponent implements OnInit, OnDestroy {
   ]);
 
   activeNews = computed(() => this.newsItems()[this.activeIndex()]);
+
+  sanitizeHtml(html: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
 
   ngOnInit(): void {
     this.loadNewsFromApi();
